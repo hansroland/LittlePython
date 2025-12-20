@@ -3,6 +3,7 @@ module Compiler.CompilerSpec (spec) where
 import Test.Hspec
 import Compiler.Syntax.SpecLangSrc (specLangSrc)
 import Compiler.Syntax.SpecLangSrcMon (specLangSrcMon)
+import Compiler.Syntax.SpecLangXAsm86 (specLangXAsm86)
 import Compiler.Syntax.SpecEval(specEval)
 import Compiler.Phases.SpecOptArith(specOptArith)
 
@@ -13,5 +14,6 @@ spec = do
   specLangSrc
   specEval
   specLangSrcMon
+  specLangXAsm86
   -- Test for Phases
   specOptArith

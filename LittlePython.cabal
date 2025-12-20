@@ -24,10 +24,10 @@ library compiler
                       , Compiler.Syntax.LangSrc
                       , Compiler.Syntax.EvalLangSrc
                       , Compiler.Syntax.LangSrcMon
-
+                      , Compiler.Syntax.LangXAsm86
                       , Compiler.Phases.OptArith
                       , Compiler.Phases.Rco
-
+                      
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0
                       , containers
@@ -52,6 +52,7 @@ test-suite LittlePython-test
     default-language: GHC2024
     other-modules:    Compiler.CompilerSpec 
                     , Compiler.Syntax.SpecLangSrc
+                    , Compiler.Syntax.SpecLangXAsm86
                     , Compiler.Syntax.SpecLangSrcMon
                     , Compiler.Syntax.SpecEval
                     , Compiler.Phases.SpecOptArith

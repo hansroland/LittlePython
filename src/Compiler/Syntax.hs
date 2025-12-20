@@ -16,6 +16,14 @@ module Compiler.Syntax (
    --from EvalLangSrc
    , evalSProg 
    , evalSStmt
+   --from  LangXAsm86
+   , Reg(..)
+   , AsmIOp(..)
+   , AsmVOp(..)
+   , Instr(..)
+   , InstrInt
+   , InstrVar
+   , ProgAsmV(..)
 
    ) where
 
@@ -23,3 +31,4 @@ import Compiler.Syntax.LangBase
 import Compiler.Syntax.LangSrc
 import Compiler.Syntax.EvalLangSrc 
 import Compiler.Syntax.LangSrcMon
+import Compiler.Syntax.LangXAsm86
