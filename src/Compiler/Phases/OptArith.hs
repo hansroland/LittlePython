@@ -15,18 +15,19 @@ import Compiler.Syntax
 -- Optimize Constants:
 --   Replace: ExprBinOp Add (ExprInt x) (ExprInt y) => (ExprInt (x+y))
 --            ExprBinOp Sub (ExprInt x) (ExprInt y) => (ExprInt (x-y))
-optimizeSProg :: SProgr -> SProgr
-optimizeSProg = optUSubProgr . optConstSProgr
+optimizeSProg :: SProg -> SProg
+optimizeSProg = optUSubProg . optConstSProg
 
 optimizeSExpr :: SExpr -> SExpr
 optimizeSExpr = optUSubExpr . optConstSExpr
 
-optConstSProgr :: SProgr -> SProgr
-optConstSProgr (SProgr body) = SProgr (optConstStmt <$> body)
+optConstSProg :: SProg -> SProg
+optConstSProg (SProg body) = SProg (optConstStmt <$> body)
 
 optConstStmt :: SStmt -> SStmt
-optConstStmt (SStmtPrint expr) = SStmtPrint $ optConstSExpr expr
-optConstStmt (SStmtExpr expr)  = SStmtExpr $ optConstSExpr expr
+optConstStmt (SStmtCall fun ex) = SStmtCall fun $ optConstSExpr ex
+optConstStmt (SStmtAssign v ex) = SStmtAssign v $ optConstSExpr ex
+optConstStmt (SStmtExpr ex)  = SStmtExpr $ optConstSExpr ex
 
 optConstSExpr :: SExpr -> SExpr
 optConstSExpr (SExprBinOp Add lhs rhs) = optConstAdd (optConstSExpr lhs) (optConstSExpr rhs)
@@ -46,12 +47,13 @@ optConstSub e1 e2 = SExprBinOp Sub e1 e2
 -- Optimizing the Unary Sub operation (aka negation)
 --   Remove double negations
 --   Replace: ExprUOp USub (ExprInt n) => (ExprInt -n)
-optUSubProgr :: SProgr -> SProgr
-optUSubProgr (SProgr body) = SProgr (optUSubStmt <$> body)
+optUSubProg :: SProg -> SProg
+optUSubProg (SProg body) = SProg (optUSubStmt <$> body)
 
 optUSubStmt :: SStmt -> SStmt
-optUSubStmt (SStmtPrint expr) = SStmtPrint $ optUSubExpr expr
-optUSubStmt (SStmtExpr expr)  = SStmtExpr $ optUSubExpr expr
+optUSubStmt (SStmtCall fun ex) = SStmtCall fun $ optUSubExpr ex
+optUSubStmt (SStmtAssign s ex) = SStmtAssign s $ optUSubExpr ex
+optUSubStmt (SStmtExpr ex)  = SStmtExpr $ optUSubExpr ex
 
 optUSubExpr :: SExpr -> SExpr
 optUSubExpr (SExprUOp USub (SExprInt n)) = SExprInt (-n)

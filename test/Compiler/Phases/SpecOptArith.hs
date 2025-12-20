@@ -9,7 +9,7 @@ runOptConst = show . optimizeSExpr
 
 specOptArith :: Spec
 specOptArith = do
-  describe "Tests for module PartialEval" $ do
+  describe "Tests for module OptArith" $ do
     it "runOptConst ex00" $ do
         (runOptConst ex00) `shouldBe` "SExprInt 29"
     it "runOptConst ex01" $ do

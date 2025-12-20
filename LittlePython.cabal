@@ -23,11 +23,15 @@ library compiler
     other-modules:    Compiler.Syntax.LangBase
                       , Compiler.Syntax.LangSrc
                       , Compiler.Syntax.EvalLangSrc
+                      , Compiler.Syntax.LangSrcMon
 
                       , Compiler.Phases.OptArith
+                      , Compiler.Phases.Rco
 
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0
+                      , containers
+                      , mtl
     hs-source-dirs:   src
     default-language: GHC2024
 
@@ -48,8 +52,10 @@ test-suite LittlePython-test
     default-language: GHC2024
     other-modules:    Compiler.CompilerSpec 
                     , Compiler.Syntax.SpecLangSrc
+                    , Compiler.Syntax.SpecLangSrcMon
                     , Compiler.Syntax.SpecEval
                     , Compiler.Phases.SpecOptArith
+                    , Compiler.Syntax.SampleProgs
     -- other-extensions:
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test

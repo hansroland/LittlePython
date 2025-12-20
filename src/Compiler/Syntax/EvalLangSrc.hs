@@ -1,23 +1,46 @@
 -- Evaluator (aka Language Interpreter) for the first language defined in LangSrc (aka LangInt).
 --
-module Compiler.Syntax.EvalLangSrc (evalSProgr, evalSStmt) where
+module Compiler.Syntax.EvalLangSrc (evalSProg, evalSStmt) where
 
 import Compiler.Syntax.LangBase
 import Compiler.Syntax.LangSrc
 
-evalSProgr :: SProgr -> IO ()
-evalSProgr (SProgr stmts ) =  mapM_ evalSStmt stmts
+import Control.Monad.State.Strict
+import qualified Data.Map.Strict as Map
+import Data.Map.Strict(Map)
+import Data.Maybe ( fromJust )
 
-evalSStmt :: SStmt -> IO (Int)
-evalSStmt (SStmtPrint e) = do
+data EvalState = EvalState (Map String Int)
+type EvalMonad a = StateT EvalState IO a
+
+initialState :: EvalState
+initialState = EvalState Map.empty
+
+evalSProg :: SProg -> IO ()
+evalSProg (SProg stmts) = do
+    _ <- execStateT (sequence_ (map evalSStmt stmts)) initialState
+    pure ()
+
+evalSStmt :: SStmt -> EvalMonad ()
+evalSStmt (SStmtCall fun e) = do
+    case fun of 
+      "print" -> do
+        n <- evalSExpr e
+        liftIO $ putStrLn $ show n
+      _ -> error ("Function not implemented: " <> fun)
+evalSStmt (SStmtExpr e) = do
+    _ <- evalSExpr e
+    pure ()
+evalSStmt (SStmtAssign var e) = do
+    (EvalState vars) <- get
     n <- evalSExpr e
-    putStrLn $ show n
-    return 0
-evalSStmt (SStmtExpr e) = evalSExpr e
-
+    let nVars = Map.insert var n vars
+    put $ EvalState nVars
+    return ()
 -- This is a classic interpreter for a standard ADT Syntax tree.
--- It runs in the IO Monad and allows us to keep IO out of the Syntax definition.
-evalSExpr :: SExpr -> IO Int
+-- It runs in the EvalMonad and allows us to keep IO out of the Syntax definition
+-- type classes used to define our language.
+evalSExpr :: SExpr -> EvalMonad Int
 evalSExpr (SExprInt n) = pure n
 evalSExpr (SExprUOp USub expr) = do
     e <- evalSExpr expr
@@ -28,5 +51,11 @@ evalSExpr (SExprBinOp op exp1 exp2) = do
     pure (case op of
            Add -> e1 + e2
            Sub -> e1 - e2)
-evalSExpr (SExprCall "getInt" []) = putStr "getInt: Enter integer" >> ((read  <$> getLine) :: IO Int)
-evalSExpr e = error ("Error on evaluating expression: " ++ show e)
+evalSExpr (SExprCall "getInt" []) = liftIO $
+    putStr "getInt: Enter integer" >> ((read <$> getLine) :: IO Int)
+evalSExpr (SExprVar var) = do                 -- Lookup int value of variable
+        (EvalState vars) <- get
+        let mb = Map.lookup var vars
+        let n = fromJust mb
+        pure n
+evalSExpr e = error ("Error on evaluating expression: " ++ pp e)
