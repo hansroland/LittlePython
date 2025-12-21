@@ -71,6 +71,9 @@ instance (PP top) => PP (Instr top)  where
     pp (Callq st) = concat [leftm, "callq ", st]
     pp  Retq      = concat [leftm, "retq  "]
 
+instance PP ProgAsmV where 
+    pp (ProgAsmV ii) = pp ii
+
 -- Helper functions
 leftm :: String
 leftm = replicate 4 ' '

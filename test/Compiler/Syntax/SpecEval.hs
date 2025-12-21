@@ -39,7 +39,9 @@ specEval = do
         evalstmt (testSub02) `shouldReturn` "-2\n"
 
     it "evalprog prog01" $ do
-        evalprog prog01  `shouldReturn` "42\n"
+        evalprog prog01  `shouldReturn` "32\n"
+    it "evalprog prog02" $ do
+        evalprog prog02  `shouldReturn` "42\n"
     it "evalprog prog03" $ do
         evalprog prog03  `shouldReturn` "-20\n"
     it "evalprog prog04" $ do

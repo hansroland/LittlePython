@@ -26,7 +26,7 @@ data MAtom =
   deriving (Show, Eq)
 
 instance PP MProg  where 
-  pp (MProg stmts) = intercalate "\n" $ pp <$> stmts
+  pp (MProg stmts) = pp stmts
 
 instance PP MStmt where 
   pp (MStmtCall fun ex) = concat [fun, " ", pp ex]

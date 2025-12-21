@@ -27,6 +27,7 @@ library compiler
                       , Compiler.Syntax.LangXAsm86
                       , Compiler.Phases.OptArith
                       , Compiler.Phases.Rco
+                      , Compiler.Phases.SelectInstr
                       
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0
@@ -55,8 +56,10 @@ test-suite LittlePython-test
                     , Compiler.Syntax.SpecLangXAsm86
                     , Compiler.Syntax.SpecLangSrcMon
                     , Compiler.Syntax.SpecEval
-                    , Compiler.Phases.SpecOptArith
                     , Compiler.Syntax.SampleProgs
+                    , Compiler.Phases.SpecOptArith
+                    , Compiler.Phases.SpecRco
+                    , Compiler.Phases.SpecSelectInstr
     -- other-extensions:
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test

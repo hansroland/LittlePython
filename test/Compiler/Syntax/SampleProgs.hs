@@ -20,15 +20,16 @@ expr05 = SExprBinOp Add expr03 expr04
 expr06 :: SExpr 
 expr06 = SExprBinOp Add (SExprVar "x") (SExprUOp USub (SExprVar "y"))
 
-
-prog01 :: SProg 
+prog01 :: SProg
 prog01 = SProg [
+        SStmtAssign "x" (SExprBinOp Add (SExprInt 42) (SExprUOp USub (SExprInt 10))),
+        SStmtCall "print" (SExprVar "x")]
+
+prog02 :: SProg 
+prog02 = SProg [
     SStmtAssign "a" (SExprInt 42),
     SStmtAssign "b" (SExprVar "a"), 
     SStmtCall "print" (SExprVar "b")]
-
-prog02 :: SProg 
-prog02 = SProg [SStmtExpr (SExprInt 42)]
 
 prog03 :: SProg 
 prog03 = SProg [SStmtAssign "var1" (SExprInt 10),

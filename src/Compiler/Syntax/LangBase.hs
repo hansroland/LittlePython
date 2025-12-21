@@ -12,6 +12,11 @@ data BinOp = Add | Sub
 data UnaryOp = USub
     deriving (Show, Eq)
 
+instance (PP a) => PP [a] where 
+    pp [] = ""
+    pp [a] = pp a
+    pp (a : as) = concat [pp a, "\n", pp as]
+
 instance PP BinOp where 
     pp Add = " + "
     pp Sub = " - "

@@ -6,6 +6,8 @@ import Compiler.Syntax.SpecLangSrcMon (specLangSrcMon)
 import Compiler.Syntax.SpecLangXAsm86 (specLangXAsm86)
 import Compiler.Syntax.SpecEval(specEval)
 import Compiler.Phases.SpecOptArith(specOptArith)
+import Compiler.Phases.SpecRco(specRco)
+import Compiler.Phases.SpecSelectInstr(specSelInstr)
 
 -- Main module for test driver
 spec :: Spec
@@ -17,3 +19,5 @@ spec = do
   specLangXAsm86
   -- Test for Phases
   specOptArith
+  specRco
+  specSelInstr

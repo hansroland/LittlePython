@@ -23,7 +23,7 @@ data SProg = SProg ![SStmt]
 -- Define a pretty printer. It produces an easy and quick string of a sentence.
 --    (This is more ore less the input to the compiler...)
 instance PP SProg where
-  pp (SProg stmts) = concat $ pp <$> stmts
+  pp (SProg stmts) = pp stmts
 
 instance PP SStmt where        
     pp (SStmtCall fun e) = concat [fun, " ", pp e]
