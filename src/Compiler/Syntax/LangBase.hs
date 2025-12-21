@@ -6,6 +6,11 @@ module Compiler.Syntax.LangBase where
 class PP a where 
     pp :: a -> String
 
+instance (PP a) => PP [a] where 
+    pp [] = ""
+    pp [a] = pp a
+    pp (a : as) = concat [pp a, "\n", pp as]
+
 data BinOp = Add | Sub
     deriving (Show, Eq)
 
