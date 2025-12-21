@@ -3,7 +3,7 @@
 --    depend on any inputs, a process known as partial evaluation
 --    (Jones, Gomard, and Sestoft 1993).
 
-module Compiler.Phases.OptArith (
+module Compiler.Phases.OptSExpr (
     optimizeSProg
     , optimizeSExpr
     )
@@ -46,7 +46,10 @@ optConstSub e1 e2 = SExprBinOp Sub e1 e2
 
 -- Optimizing the Unary Sub operation (aka negation)
 --   Remove double negations
---   Replace: ExprUOp USub (ExprInt n) => (ExprInt -n)
+--      Replace: ExprUOp USub (ExprInt n) => (ExprInt -n)
+--   Push negation to leafs
+--      Replace  ExprUOp USub (ExprBinOp x y) => 
+--                      ExprBinOp (ExprUOp USub x) (ExprUOp USub y)
 optUSubProg :: SProg -> SProg
 optUSubProg (SProg body) = SProg (optUSubStmt <$> body)
 
@@ -58,4 +61,6 @@ optUSubStmt (SStmtExpr ex)  = SStmtExpr $ optUSubExpr ex
 optUSubExpr :: SExpr -> SExpr
 optUSubExpr (SExprUOp USub (SExprInt n)) = SExprInt (-n)
 optUSubExpr (SExprUOp USub (SExprUOp USub e)) = e
+optUSubExpr (SExprUOp USub (SExprBinOp op x y)) = 
+    SExprBinOp op (SExprUOp USub  x) (SExprUOp USub  y)
 optUSubExpr e = e

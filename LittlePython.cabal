@@ -25,7 +25,7 @@ library compiler
                       , Compiler.Syntax.EvalLangSrc
                       , Compiler.Syntax.LangSrcMon
                       , Compiler.Syntax.LangXAsm86
-                      , Compiler.Phases.OptArith
+                      , Compiler.Phases.OptSExpr
                       , Compiler.Phases.Rco
                       , Compiler.Phases.SelectInstr
                       
@@ -57,7 +57,7 @@ test-suite LittlePython-test
                     , Compiler.Syntax.SpecLangSrcMon
                     , Compiler.Syntax.SpecEval
                     , Compiler.Syntax.SampleProgs
-                    , Compiler.Phases.SpecOptArith
+                    , Compiler.Phases.SpecOptSExpr
                     , Compiler.Phases.SpecRco
                     , Compiler.Phases.SpecSelectInstr
     -- other-extensions:

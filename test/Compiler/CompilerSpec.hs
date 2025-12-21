@@ -5,7 +5,7 @@ import Compiler.Syntax.SpecLangSrc (specLangSrc)
 import Compiler.Syntax.SpecLangSrcMon (specLangSrcMon)
 import Compiler.Syntax.SpecLangXAsm86 (specLangXAsm86)
 import Compiler.Syntax.SpecEval(specEval)
-import Compiler.Phases.SpecOptArith(specOptArith)
+import Compiler.Phases.SpecOptSExpr(specOptSExpr)
 import Compiler.Phases.SpecRco(specRco)
 import Compiler.Phases.SpecSelectInstr(specSelInstr)
 
@@ -18,6 +18,6 @@ spec = do
   specLangSrcMon
   specLangXAsm86
   -- Test for Phases
-  specOptArith
+  specOptSExpr
   specRco
   specSelInstr

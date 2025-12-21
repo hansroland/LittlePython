@@ -6,7 +6,7 @@ module Compiler.Phases (
     )
 where
 
-import Compiler.Phases.OptArith
+import Compiler.Phases.OptSExpr
 import Compiler.Phases.Rco
 import Compiler.Phases.SelectInstr
 
