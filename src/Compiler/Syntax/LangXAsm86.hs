@@ -22,20 +22,30 @@ data AsmIOp = IReg !Reg
 
 -- Operand type for X86Var
 data AsmVOp = VReg !Reg
-           | VMem !String
+           | VVar !String
+           | VMem !Int !Reg
            | VImm !Int
            deriving (Show, Eq)
 
+data AsmOpc2 = Addq 
+            | Subq
+            | Movq
+           deriving (Show, Eq)
+
+data AsmOpc1 = Negq 
+            | Pushq 
+            | Popq
+           deriving (Show, Eq)
+
+data AsmOpc0 = Callq String 
+            | Retq
+           deriving (Show, Eq)
+
 -- Polymorphic instruction type
-data Instr o = Addq !o !o 
-           | Subq !o !o 
-           | Negq !o 
-           | Movq !o !o
-           | Pushq !o 
-           | Popq !o
-           | Callq !String
-           | Retq 
-           deriving (Show)
+data Instr o = Instr2 AsmOpc2 !o !o 
+             | Instr1 AsmOpc1 !o 
+             | Instr0 AsmOpc0
+           deriving (Show, Eq)
 
 -- Instructions for the X86Int language
 type InstrInt = Instr AsmIOp
@@ -43,9 +53,11 @@ type InstrInt = Instr AsmIOp
 -- Instructions for the X86Var language
 type InstrVar = Instr AsmVOp
 
-data ProgAsmV = ProgAsmV [InstrVar]
+-- A programs for the ProgAsmVar language
+data ProgAsmV = ProgAsmV Int [InstrVar]   -- In for frame size in bytes
 
-data ProgAsmI = ProgAsmI [InstrInt]
+-- A programs for the ProgAsmInt language
+data ProgAsmI = ProgAsmI Int [InstrInt]
 
 -- Instances
 instance PP Reg where 
@@ -58,25 +70,29 @@ instance PP AsmIOp where
 
 instance PP AsmVOp where 
     pp (VReg r)   = pp r
-    pp (VMem str) = str
+    pp (VVar str) = str
+    pp (VMem n r) = concat [show n, "(", pp r,  ")"]
     pp (VImm n)   = '$' : show n
 
-instance (PP top) => PP (Instr top)  where
-    pp (Addq s d) = concat [leftm, "addq  ", ppsd s  d]
-    pp (Subq s d) = concat [leftm, "subq  ", ppsd s  d]
-    pp (Negq s)   = concat [leftm, "negq  ", pp s]
-    pp (Movq s d) = concat [leftm, "movq  ", ppsd s  d]
-    pp (Pushq d)  = concat [leftm, "pushq ", pp d]
-    pp (Popq d)   = concat [leftm, "popq  ", pp d]
-    pp (Callq st) = concat [leftm, "callq ", st]
-    pp  Retq      = concat [leftm, "retq  "]
+instance PP AsmOpc2 where 
+    pp op = toLower <$> show op
+    
+instance PP AsmOpc1 where 
+    pp op = toLower <$> show op
 
+instance PP AsmOpc0 where 
+    pp op = toLower <$> show op
+
+instance (PP top) => PP (Instr top)  where
+    pp (Instr2 op s d) = concat [leftm, pp op, "  ", pp s, ", ", pp d]
+    pp (Instr1 op sd)  = concat [leftm, pp op, "  ",  pp sd]
+    pp (Instr0 (Callq s)) = concat [leftm, "callq ", s]
+    pp (Instr0 op) = concat [leftm, pp op]
+    
 instance PP ProgAsmV where 
-    pp (ProgAsmV ii) = pp ii
+    pp (ProgAsmV _ ii) = pp ii
 
 -- Helper functions
 leftm :: String
 leftm = replicate 4 ' '
 
-ppsd :: (PP s, PP d) => s -> d -> String 
-ppsd s d = concat [pp s, ", ", pp d]

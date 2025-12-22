@@ -20,6 +20,9 @@ module Compiler.Syntax (
    , Reg(..)
    , AsmIOp(..)
    , AsmVOp(..)
+   , AsmOpc2(..)
+   , AsmOpc1(..) 
+   , AsmOpc0(..)
    , Instr(..)
    , InstrInt
    , InstrVar

@@ -29,7 +29,7 @@ specLangXAsm86 = do
    it "pp instr02" $ do 
       pp instr02 `shouldBe` "    negq  (42)%rax"
    it "pp instr03" $ do 
-      pp instr03 `shouldBe` "    retq  "
+      pp instr03 `shouldBe` "    retq"
 
    it "pp vinstr01" $ do 
       pp vinstr01 `shouldBe` "    movq  varA, varB"
@@ -44,15 +44,15 @@ src02 = IMem 42 Rbp
 src03 = IImm 25
 
 vsrc01 :: AsmVOp
-vsrc01 = VMem "varA"
+vsrc01 = VVar "varA"
 
 vdst01 :: AsmVOp 
-vdst01 = VMem "varB"
+vdst01 = VVar "varB"
 
 instr01, instr02, instr03 :: InstrInt
-instr01 = Addq src01 dst01
-instr02 = Negq dst02 
-instr03 = Retq 
+instr01 = Instr2 Addq src01 dst01
+instr02 = Instr1 Negq dst02 
+instr03 = Instr0 Retq 
 
 vinstr01 :: InstrVar 
-vinstr01 = Movq vsrc01 vdst01
+vinstr01 = Instr2 Movq vsrc01 vdst01

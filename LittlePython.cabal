@@ -28,6 +28,7 @@ library compiler
                       , Compiler.Phases.OptSExpr
                       , Compiler.Phases.Rco
                       , Compiler.Phases.SelectInstr
+                      , Compiler.Phases.AssignHomes
                       
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0
@@ -60,6 +61,7 @@ test-suite LittlePython-test
                     , Compiler.Phases.SpecOptSExpr
                     , Compiler.Phases.SpecRco
                     , Compiler.Phases.SpecSelectInstr
+                    , Compiler.Phases.SpecAssignHomes
     -- other-extensions:
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
