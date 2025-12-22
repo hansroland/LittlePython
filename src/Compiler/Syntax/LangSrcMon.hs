@@ -8,7 +8,7 @@ import Data.List (intercalate)
 data MProg = MProg ![MStmt]
   deriving (Eq, Show)
 
-data MStmt = MStmtCall !String  !MExpr
+data MStmt = MStmtCall !String !MAtom    -- print !!
           | MStmtAssign !String !MExpr
           | MStmtExpr !MExpr
   deriving (Eq, Show)
@@ -17,7 +17,7 @@ data MExpr =
     MExprAtom !MAtom
     | MExprBinOp !BinOp !MAtom !MAtom
     | MExprUOp !UnaryOp !MAtom
-    | MExprCall !String ![MAtom]
+    | MExprCall !String ![MAtom]        -- getInt  !!
   deriving (Show, Eq)
 
 data MAtom =
@@ -37,7 +37,7 @@ instance PP MExpr where
   pp (MExprAtom atom) = pp atom
   pp (MExprBinOp binop lhs rhs) = concat [pp lhs, pp binop, pp rhs]
   pp (MExprUOp unop atom) = concat [pp unop, pp atom]
-  pp (MExprCall fun exs) = concat ["call ", fun, "(", intercalate "," (pp <$> exs), ")"]        
+  pp (MExprCall fun atms) = concat ["call ", fun, "(", intercalate "," (pp <$> atms), ")"]        
 
 instance PP MAtom where
   pp (MAtomInt n) = show n

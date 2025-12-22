@@ -4,6 +4,7 @@
 module Compiler.Phases.Rco
   where
 
+import Compiler.Syntax.LangBase
 import Compiler.Syntax.LangSrc  
 import Compiler.Syntax.LangSrcMon   
 
@@ -20,13 +21,13 @@ rco (SProg lestmts) =
 -- Convert a single statement
 rcoStmt :: SStmt -> RcoMonad [MStmt]
 rcoStmt (SStmtCall fun (SExprVar v)) =                     -- print simple variable expr
-    pure $ [MStmtCall fun (MExprAtom(MAtomVar v))]
+    pure $ [MStmtCall fun (MAtomVar v)]
 rcoStmt (SStmtCall fun (SExprInt n)) =                     -- print simple integer expr
-    pure $ [MStmtCall fun (MExprAtom(MAtomInt n))]
+    pure $ [MStmtCall fun (MAtomInt n)]
 rcoStmt (SStmtCall fun e) = do                               -- print complex expr
     newVar <- getAssignVar e
     atms <- rcoExpr e newVar
-    pure $ concat [atms, [MStmtCall fun (MExprAtom(MAtomVar newVar))]]
+    pure $ concat [atms, [MStmtCall fun (MAtomVar newVar)]]
 
 rcoStmt (SStmtExpr (SExprVar v)) =                     -- simple variable expr
     pure $ [MStmtExpr (MExprAtom(MAtomVar v))]
@@ -99,6 +100,6 @@ toAtom e = error ("Rco.hs cannot convert to atom: " ++ show e)
 
 -- Extract the expression from a Stmt
 getExpr :: MStmt -> MExpr 
-getExpr (MStmtCall _ e) = e
+getExpr ex@(MStmtCall _ _) = error ("Rco.getExpr MStmtCall does not contain an expression: " <> pp ex)
 getExpr (MStmtAssign _ e) = e
 getExpr (MStmtExpr e) = e

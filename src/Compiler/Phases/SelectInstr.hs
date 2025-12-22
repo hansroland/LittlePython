@@ -6,22 +6,16 @@ selectInstr :: MProg -> ProgAsmV
 selectInstr (MProg stmts) = ProgAsmV 0 $ concat $ selectInstrStmt <$> stmts
 
 selectInstrStmt :: MStmt -> [InstrVar]
-selectInstrStmt (MStmtCall fun  (MExprAtom(MAtomVar v))) = 
+selectInstrStmt (MStmtCall fun (MAtomVar v)) = 
     [Instr2 Movq (VVar v) (VReg Rdi), Instr0 (Callq fun)]
-selectInstrStmt (MStmtCall fun (MExprAtom(MAtomInt n))) = 
-    [Instr2 Movq (VImm n) (VReg Rdi), Instr0(Callq fun)]
-selectInstrStmt (MStmtCall fun ex) = 
-    error $ concat ["selectInstrStmt (MStmtCall fun ex) ", show fun, " ", show ex]
+selectInstrStmt (MStmtCall fun (MAtomInt n)) = 
+    [Instr2 Movq (VImm n) (VReg Rdi), Instr0 (Callq fun)]
 
 selectInstrStmt (MStmtAssign v (MExprAtom a )) = [Instr2 Movq (fromAtom a) (VVar v)]
 selectInstrStmt (MStmtAssign v (MExprBinOp op atom1 atom2)) = 
     binop op (fromAtom atom1) (fromAtom atom2) (VVar v) 
 selectInstrStmt (MStmtAssign v (MExprUOp uop a)) = umop uop (fromAtom a) (VVar v)
-
--- selectInstrStmt (MStmtExpr (MExprAtom (MAtomInt n)))
-
 selectInstrStmt mstmt = error $ "selectInstr unknown stmt: " <> show mstmt
-
 
 binop :: BinOp -> AsmVOp -> AsmVOp -> AsmVOp -> [InstrVar]
 binop Add op1 op2 res 
