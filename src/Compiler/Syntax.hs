@@ -27,7 +27,7 @@ module Compiler.Syntax (
    , InstrInt
    , InstrVar
    , ProgAsmV(..)
-
+   , ProgAsmI(..)
    ) where
 
 import Compiler.Syntax.LangBase 

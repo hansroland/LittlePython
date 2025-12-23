@@ -6,7 +6,7 @@ import Compiler.Syntax
 import Compiler.Syntax.SampleProgs
 import Compiler.Phases
 
--- Tests for the LangInt.SelInstr (Select instructions)
+-- Tests for Compiler Phases AssignHomes
 specAssignHomes :: Spec
 specAssignHomes = do
   describe "Tests for module Compiler.Phases.SelectInstr" $ do
@@ -23,5 +23,5 @@ specAssignHomes = do
     it "pp $ testah prog07" $ do
        (pp $ testah prog07) `shouldBe` "    movq  -8(%rbp), -16(%rbp)\n    negq  -16(%rbp)\n    movq  -24(%rbp), %rax\n    addq  -16(%rbp), %rax\n    movq  %rax, -32(%rbp)\n    movq  -32(%rbp), %rdi\n    callq print" 
  
-testah :: SProg ->  ProgAsmV
+testah :: SProg ->  ProgAsmI
 testah = assignHomes . selectInstr . rco

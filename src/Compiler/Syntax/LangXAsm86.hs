@@ -65,7 +65,7 @@ instance PP Reg where
 
 instance PP AsmIOp where 
     pp (IReg r)   = pp r
-    pp (IMem n r) = concat ["(", show n, ")", pp r ]
+    pp (IMem n r) = concat [show n, "(", pp r,  ")"]
     pp (IImm n)   = '$' : show n
 
 instance PP AsmVOp where 
@@ -91,6 +91,9 @@ instance (PP top) => PP (Instr top)  where
     
 instance PP ProgAsmV where 
     pp (ProgAsmV _ ii) = pp ii
+
+instance PP ProgAsmI where 
+    pp (ProgAsmI _ ii) = pp ii
 
 -- Helper functions
 leftm :: String

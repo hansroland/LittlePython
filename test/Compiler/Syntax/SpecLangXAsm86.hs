@@ -15,19 +15,19 @@ specLangXAsm86 = do
    it "pp dst01" $ do
        pp dst01 `shouldBe` "%rax"
    it "pp dst02" $ do
-       pp dst02 `shouldBe` "(42)%rax"
+       pp dst02 `shouldBe` "42(%rax)"
    -- Source
    it "pp src01" $ do
        pp src01 `shouldBe` "%rax"
    it "pp src02" $ do
-       pp src02 `shouldBe` "(42)%rbp"
+       pp src02 `shouldBe` "42(%rbp)"
    it "pp src03" $ do
        pp src03 `shouldBe` "$25"
    -- Instructions
    it "pp instr01" $ do 
       pp instr01 `shouldBe` "    addq  %rax, %rax"
    it "pp instr02" $ do 
-      pp instr02 `shouldBe` "    negq  (42)%rax"
+      pp instr02 `shouldBe` "    negq  42(%rax)"
    it "pp instr03" $ do 
       pp instr03 `shouldBe` "    retq"
 
