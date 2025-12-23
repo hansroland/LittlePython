@@ -9,7 +9,7 @@ import Compiler.Phases
 -- Tests for Compiler Phases AssignHomes
 specAssignHomes :: Spec
 specAssignHomes = do
-  describe "Tests for module Compiler.Phases.SelectInstr" $ do
+  describe "Tests for module Compiler.Phases.AssignHomes" $ do
     it "pp $ testah prog01" $ do                           
        (pp $ testah prog01) `shouldBe` "    movq  $10, -8(%rbp)\n    negq  -8(%rbp)\n    movq  $42, %rax\n    addq  -8(%rbp), %rax\n    movq  %rax, -16(%rbp)\n    movq  -16(%rbp), %rdi\n    callq print" 
     it "pp $ testah prog02" $ do
