@@ -22,6 +22,9 @@ asHInstr :: InstrVar -> AssignMonad InstrInt
 asHInstr (Instr2 opc op1 op2) = Instr2 opc <$> (asHOp op1) <*> (asHOp op2)
 asHInstr (Instr1 opc op1)     = Instr1 opc <$> asHOp op1
 asHInstr (Instr0 opc)         = pure $ Instr0 opc  
+asHInstr (InstrGlob lbl)      = pure $ InstrGlob lbl
+asHInstr (InstrLabl lbl)      = pure $ InstrLabl lbl
+
 
 asHOp  :: AsmVOp -> AssignMonad AsmIOp
 asHOp (VReg r)   = pure $ IReg r 

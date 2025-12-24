@@ -30,6 +30,7 @@ library compiler
                       , Compiler.Phases.SelectInstr
                       , Compiler.Phases.AssignHomes
                       , Compiler.Phases.PatchInstr
+                      , Compiler.Phases.ProEpilog
                       
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0
@@ -38,7 +39,7 @@ library compiler
     hs-source-dirs:   src
     default-language: GHC2024
 
-executable LittlePython
+executable lpy
     import:           warnings
     main-is:          Main.hs
     -- other-modules:

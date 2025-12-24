@@ -30,9 +30,13 @@ specLangXAsm86 = do
       pp instr02 `shouldBe` "    negq  42(%rax)"
    it "pp instr03" $ do 
       pp instr03 `shouldBe` "    retq"
-
    it "pp vinstr01" $ do 
       pp vinstr01 `shouldBe` "    movq  varA, varB"
+   it "pp glob" $ do 
+      pp glob `shouldBe`  "    .globl main"
+   it "pp labl" $ do 
+      pp labl `shouldBe`  "main:"
+
 
 dst01, dst02 :: AsmIOp 
 dst01 = IReg Rax 
@@ -56,3 +60,9 @@ instr03 = Instr0 Retq
 
 vinstr01 :: InstrVar 
 vinstr01 = Instr2 Movq vsrc01 vdst01
+
+glob :: InstrInt 
+glob = InstrGlob "main"
+
+labl :: InstrInt
+labl = InstrLabl "main"

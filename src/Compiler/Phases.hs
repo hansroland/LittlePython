@@ -5,6 +5,7 @@ module Compiler.Phases (
     , selectInstr
     , assignHomes
     , patchInstr
+    , proEpilog
     )
 where
 
@@ -13,3 +14,4 @@ import Compiler.Phases.Rco
 import Compiler.Phases.SelectInstr
 import Compiler.Phases.AssignHomes
 import Compiler.Phases.PatchInstr
+import Compiler.Phases.ProEpilog

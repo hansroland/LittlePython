@@ -45,6 +45,8 @@ data AsmOpc0 = Callq String
 data Instr o = Instr2 AsmOpc2 !o !o 
              | Instr1 AsmOpc1 !o 
              | Instr0 AsmOpc0
+             | InstrGlob String 
+             | InstrLabl String
            deriving (Show, Eq)
 
 -- Instructions for the X86Int language
@@ -88,12 +90,14 @@ instance (PP top) => PP (Instr top)  where
     pp (Instr1 op sd)  = concat [leftm, pp op, "  ",  pp sd]
     pp (Instr0 (Callq s)) = concat [leftm, "callq ", s]
     pp (Instr0 op) = concat [leftm, pp op]
+    pp (InstrGlob lbl) = concat [leftm, ".globl ", lbl]
+    pp (InstrLabl lbl) = concat [lbl, ":"]
     
 instance PP ProgAsmV where 
     pp (ProgAsmV _ ii) = pp ii
 
 instance PP ProgAsmI where 
-    pp (ProgAsmI _ ii) = pp ii
+    pp (ProgAsmI _ ii) = concat $ [pp ii, "\n"]
 
 -- Helper functions
 leftm :: String
