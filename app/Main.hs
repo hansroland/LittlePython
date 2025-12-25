@@ -3,10 +3,6 @@ module Main where
 import Compiler.Syntax
 import Compiler.Phases
 
-
--- https://www.baeldung.com/linux/assembly-compile-run
--- https://www.jdoodle.com/compile-assembler-gcc-online
-
 main :: IO ()
 main = do 
   let prog = "prog02"

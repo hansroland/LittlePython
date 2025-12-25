@@ -8,7 +8,7 @@ import Data.List (intercalate)
 data MProg = MProg ![MStmt]
   deriving (Eq, Show)
 
-data MStmt = MStmtCall !String !MAtom    -- print !!
+data MStmt = MStmtCall !String !MAtom    -- print_int !!
           | MStmtAssign !String !MExpr
           | MStmtExpr !MExpr
   deriving (Eq, Show)
@@ -17,7 +17,7 @@ data MExpr =
     MExprAtom !MAtom
     | MExprBinOp !BinOp !MAtom !MAtom
     | MExprUOp !UnaryOp !MAtom
-    | MExprCall !String ![MAtom]        -- getInt  !!
+    | MExprCall !String ![MAtom]        -- read_int  !!
   deriving (Show, Eq)
 
 data MAtom =

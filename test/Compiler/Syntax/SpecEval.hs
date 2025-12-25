@@ -1,6 +1,7 @@
 module Compiler.Syntax.SpecEval (specEval) where
 
 import Test.Hspec
+import Utils.Redir
 import Compiler.Syntax
 import Compiler.Syntax.SampleProgs
 
@@ -46,6 +47,10 @@ specEval = do
         evalprog prog03  `shouldReturn` "-20\n"
     it "evalprog prog04" $ do
         evalprog prog04  `shouldReturn` "-25\n"
+
+    it "runWithInput (evalSProg prog05)" $ do 
+        out <- runWithInput (evalSProg prog05) "12\n13"
+        shouldContain out ("-25\n" )
 
 testLit01 :: SStmt
 testLit01 = SStmtCall "print"  (SExprInt 34)

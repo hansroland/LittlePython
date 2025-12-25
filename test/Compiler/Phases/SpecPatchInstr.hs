@@ -12,21 +12,21 @@ specPatchInstr = do
   describe "Tests for module Compiler.Phases.PatchInstr" $ do
     -- Test two memory addresses in one instruction
     it "pp $ patchInstr prog01" $ do                           
-       (pp $ patchInstr prog01) `shouldBe` "    movq  -8(%rbp), %rax\n    subq  %rax, -16(%rbp)" 
+       (pp $ patchInstr prog01) `shouldBe` "    movq  -8(%rbp), %rax\n    subq  %rax, -16(%rbp)\n" 
     -- Test two registers in one instruction
     it "pp $ patchInstr prog02" $ do
-       (pp $ patchInstr prog02) `shouldBe` "    addq  %rbp, %rax" 
+       (pp $ patchInstr prog02) `shouldBe` "    addq  %rbp, %rax\n" 
     -- Test positive big immediate number and memory loc in one instruction   
     it "pp $ patchInstr prog03" $ do
-       (pp $ patchInstr prog03) `shouldBe` "    movq  $2147483649, %rax\n    subq  -16(%rax), %rax" 
+       (pp $ patchInstr prog03) `shouldBe` "    movq  $2147483649, %rax\n    subq  -16(%rax), %rax\n" 
     --  Test negative "big" number and memory loc in one instruction
     it "pp $ patchInstr prog04" $ do
-       (pp $ patchInstr prog04) `shouldBe` "    movq  $-2147483649, %rax\n    movq  -16(%rax), %rax" 
+       (pp $ patchInstr prog04) `shouldBe` "    movq  $-2147483649, %rax\n    movq  -16(%rax), %rax\n" 
     -- Test normal instructions
     it "pp $ patchInstr prog05" $ do
-       (pp $ patchInstr prog05) `shouldBe` "    addq  $42, %rax" 
+       (pp $ patchInstr prog05) `shouldBe` "    addq  $42, %rax\n" 
     it "pp $ patchInstr prog06" $ do
-       (pp $ patchInstr prog06) `shouldBe` "    negq  %rax" 
+       (pp $ patchInstr prog06) `shouldBe` "    negq  %rax\n" 
 
 
 prog01 :: ProgAsmI

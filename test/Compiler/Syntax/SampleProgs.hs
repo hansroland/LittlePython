@@ -43,6 +43,11 @@ prog04 = SProg [SStmtAssign "x" expr01,
                  SStmtAssign "y" expr02,
                  SStmtCall "print" (SExprBinOp Sub (SExprVar "x") (SExprVar "y"))]
 
+prog05 :: SProg 
+prog05 = SProg [SStmtAssign "x" expr01,
+                 SStmtAssign "y" expr02,
+                 SStmtCall "print" (SExprBinOp Sub (SExprVar "x") (SExprVar "y"))]
+
 prog06 :: SProg 
 prog06 = SProg [SStmtAssign "z" expr05]
 

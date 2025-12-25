@@ -54,7 +54,8 @@ executable lpy
 test-suite LittlePython-test
     import:           warnings
     default-language: GHC2024
-    other-modules:    Compiler.CompilerSpec 
+    other-modules:  Utils.Redir
+                    , Compiler.CompilerSpec 
                     , Compiler.Syntax.SpecLangSrc
                     , Compiler.Syntax.SpecLangXAsm86
                     , Compiler.Syntax.SpecLangSrcMon
@@ -74,4 +75,5 @@ test-suite LittlePython-test
         , hspec
         , compiler
         , silently
+        , temporary                         
         -- LittlePython
