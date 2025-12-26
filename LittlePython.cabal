@@ -74,6 +74,4 @@ test-suite LittlePython-test
         base ^>=4.20.0.0
         , hspec
         , compiler
-        , silently
         , temporary                         
-        -- LittlePython
