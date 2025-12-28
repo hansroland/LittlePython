@@ -1,5 +1,6 @@
 module Compiler.Phases (
-    optimizeSProg
+    parseLpy
+    , optimizeSProg
     , optimizeSExpr
     , rco
     , selectInstr
@@ -9,6 +10,7 @@ module Compiler.Phases (
     )
 where
 
+import Compiler.Phases.Parser
 import Compiler.Phases.OptSExpr
 import Compiler.Phases.Rco
 import Compiler.Phases.SelectInstr

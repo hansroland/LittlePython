@@ -3,13 +3,55 @@ module Main where
 import Compiler.Syntax
 import Compiler.Phases
 
+import System.Environment (getArgs)
+import System.Exit (exitFailure)
+import System.IO
+
+-- See: https://stackoverflow.com/questions/47683804/parsing-command-line-arguments-in-haskell
+--      https://stackoverflow.com/questions/28927358/how-to-get-leftover-arguments-in-optparse-applicative
+
 main :: IO ()
-main = do 
-  let prog = "prog02"
+main = do
+  filename <- getFilePath 
+  fileHandle <- openFile filename ReadMode
+  prog <- getFileContents fileHandle
+  compile filename prog
+  hClose fileHandle
 
-  prtPart "Source : LangSrc" $ pp prog02
+     -- get filepath to compile
+getFilePath :: IO String
+getFilePath = do
+  args <- getArgs
+  case length args of
+      1 -> do
+         pure $ head args
+      _ -> do
+         putStrLn "usage:\r lpy <filePath>\r <filePath> = *.lpy file to compile"
+         exitFailure
 
-  let progRco = rco prog02 
+-- read file data
+getFileContents :: Handle -> IO (String)
+getFileContents fileHandle = do 
+  fileContent <- hGetContents fileHandle
+  pure fileContent
+
+-- runthe compiler
+compile :: String -> String -> IO ()
+compile filename prog = do 
+
+  prtPart "Input" prog 
+
+  let parsResult = parseLpy filename prog
+  ast <- case parsResult of 
+    Left err -> do 
+      print err 
+      exitFailure
+    Right sprog -> do
+      return sprog 
+
+  prtPart "Ast : " $ pp ast
+
+  let progRco = rco ast 
   prtPart "Remove complex operations" $ pp progRco 
 
   let progInstrV = selectInstr progRco 
@@ -25,12 +67,6 @@ main = do
   prtPart "Final Programme" $ ppresult
 
   writeFile (prog <> ".s") ppresult 
-
-prog02 :: SProg 
-prog02 = SProg [
-    SStmtAssign "a" (SExprInt 42),
-    SStmtAssign "b" (SExprVar "a"), 
-    SStmtCall "print_int" (SExprVar "b")]
 
 prtPart :: String -> String -> IO ()
 prtPart title part = do 

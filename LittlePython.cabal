@@ -25,6 +25,7 @@ library compiler
                       , Compiler.Syntax.EvalLangSrc
                       , Compiler.Syntax.LangSrcMon
                       , Compiler.Syntax.LangXAsm86
+                      , Compiler.Phases.Parser
                       , Compiler.Phases.OptSExpr
                       , Compiler.Phases.Rco
                       , Compiler.Phases.SelectInstr
@@ -36,6 +37,9 @@ library compiler
     build-depends:    base ^>=4.20.0.0
                       , containers
                       , mtl
+                      , megaparsec
+                      , parser-combinators
+
     hs-source-dirs:   src
     default-language: GHC2024
 
