@@ -1,33 +1,25 @@
+{-# LANGUAGE OverloadedRecordDot #-}
 module Main where
 
 import Compiler.Syntax
 import Compiler.Phases
+import Options
 
-import System.Environment (getArgs)
 import System.Exit (exitFailure)
+import Control.Monad (when)
+import System.FilePath (replaceExtension)
+import System.Directory
 import System.IO
-
--- See: https://stackoverflow.com/questions/47683804/parsing-command-line-arguments-in-haskell
---      https://stackoverflow.com/questions/28927358/how-to-get-leftover-arguments-in-optparse-applicative
 
 main :: IO ()
 main = do
-  filename <- getFilePath 
+  settings <- getOptions
+  let filename = settings.file 
+
   fileHandle <- openFile filename ReadMode
   prog <- getFileContents fileHandle
-  compile filename prog
+  compile settings filename prog
   hClose fileHandle
-
-     -- get filepath to compile
-getFilePath :: IO String
-getFilePath = do
-  args <- getArgs
-  case length args of
-      1 -> do
-         pure $ head args
-      _ -> do
-         putStrLn "usage:\r lpy <filePath>\r <filePath> = *.lpy file to compile"
-         exitFailure
 
 -- read file data
 getFileContents :: Handle -> IO (String)
@@ -35,12 +27,24 @@ getFileContents fileHandle = do
   fileContent <- hGetContents fileHandle
   pure fileContent
 
+checkFileName :: FilePath -> IO ()
+checkFileName filename = do 
+  exists <- doesFileExist filename 
+  case exists of 
+    True -> pure () 
+    False -> do 
+      dumpUsage options
+      exitFailure
+
+
 -- runthe compiler
-compile :: String -> String -> IO ()
-compile filename prog = do 
+compile :: Settings -> String -> String -> IO ()
+compile settings filename prog = do 
 
-  prtPart "Input" prog 
-
+  -- Input
+  when settings.printInp $ prtPart ("Input: " <> filename) prog 
+  
+  -- Parsing
   let parsResult = parseLpy filename prog
   ast <- case parsResult of 
     Left err -> do 
@@ -48,29 +52,33 @@ compile filename prog = do
       exitFailure
     Right sprog -> do
       return sprog 
+  when settings.printAst $ prtPart "Ast : " $ pp ast
 
-  prtPart "Ast : " $ pp ast
-
+  -- Remove complex instructions
   let progRco = rco ast 
-  prtPart "Remove complex operations" $ pp progRco 
+  when settings.printRco $ prtPart "Remove complex operations" $ pp progRco 
 
+  -- Select instructions
   let progInstrV = selectInstr progRco 
-  prtPart "Select Instructions" $ pp progInstrV 
+  when settings.printSi $ prtPart "Select Instructions" $ pp progInstrV 
 
+  -- Assign Homes
   let progAssignHomes = assignHomes progInstrV
-  prtPart "Assign Homes" $ pp progAssignHomes
+  when settings.printAh $ prtPart "Assign Homes" $ pp progAssignHomes
 
+  -- Patch Instructions
   let progInstrI = patchInstr progAssignHomes
-  prtPart "Patch Instructions" $ pp progInstrI 
+  when settings.printPatch $ prtPart "Patch Instructions" $ pp progInstrI 
 
+  -- Add Prolog and Epilog
   let ppresult = pp $ proEpilog progInstrI
-  prtPart "Final Programme" $ ppresult
+  when settings.printEpilog $ prtPart "Final Programme" $ ppresult
 
-  writeFile (prog <> ".s") ppresult 
+  let outname = replaceExtension filename ".s"
+  writeFile outname ppresult 
 
 prtPart :: String -> String -> IO ()
 prtPart title part = do 
   putStrLn title
   putStrLn ""
-  putStrLn $ part <> "\n\n\n"
-
+  putStrLn $ part <> "\n\n"

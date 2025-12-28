@@ -46,10 +46,13 @@ library compiler
 executable lpy
     import:           warnings
     main-is:          Main.hs
-    -- other-modules:
+    other-modules:    Options
     -- other-extensions:
     build-depends:
         base ^>=4.20.0.0,
+        directory,
+        filepath,
+        simple-get-opt,
         compiler
 
     hs-source-dirs:   app
