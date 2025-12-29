@@ -1,36 +1,39 @@
 module Compiler.Syntax.SpecEval (specEval) where
 
 import Test.Hspec
+import Utils.Redir
 import Compiler.Syntax
 
--- To redirect stdin see:
--- https://stackoverflow.com/questions/76683594/in-haskell-how-can-i-interact-with-stdin-of-an-io
 
-import System.IO.Silently
+evalProgWith :: SProgr -> String -> String -> IO ()  --includes get_int
+evalProgWith sprog inp res = do 
+    out <- runWithInput (evalSProgr sprog) inp
+    shouldContain out res
 
--- Run the test in the IO Monad
-evaltest :: SStmt -> IO String
-evaltest e = do
-    output <- capture_ $ evalSStmt e
-    pure output
+evalStmt :: SStmt -> String  -> IO ()           -- without get_int
+evalStmt stmt out = do
+    evalProgWith (SProgr [stmt]) "" out
 
 specEval :: Spec
 specEval = do
   describe "Tests for module LangInt.Eval" $ do
-    it "evaltest testLit01" $ do
-        evaltest (testLit01) `shouldReturn` "34\n"
-    it "evaltest testNeg01" $ do
-        evaltest (testNeg01) `shouldReturn` "-42\n"
-    it "evaltest testNeg02" $ do
-        evaltest (testNeg02) `shouldReturn` "5\n"
-    it "evaltest testAdd01" $ do
-        evaltest (testAdd01) `shouldReturn` "42\n"
-    it "evaltest testAdd02" $ do
-        evaltest (testAdd02) `shouldReturn` "10\n"
-    it "evaltest testSub01" $ do
-        evaltest (testSub01) `shouldReturn` "-26\n"
-    it "evaltest testSub02" $ do
-        evaltest (testSub02) `shouldReturn` "-2\n"
+    it "evalStmt testLit01" $ do
+        evalStmt testLit01 "34\n"
+    it "evalStmt testNeg01" $ do
+        evalStmt (testNeg01) "-42\n"
+    it "evalStmt testNeg02" $ do
+        evalStmt (testNeg02) "5\n"
+    it "evalStmt testAdd01" $ do
+        evalStmt (testAdd01) "42\n"
+    it "evalStmt testAdd02" $ do
+        evalStmt (testAdd02) "10\n"
+    it "evalStmt testSub01" $ do
+        evalStmt (testSub01) "-26\n"
+    it "evalStmt testSub02" $ do
+        evalStmt (testSub02) "-2\n"
+
+    it "evalProgWith prog01" $ do
+        evalProgWith prog01 "52\n10\n" "42\n"
 
 testLit01 :: SStmt
 testLit01 = SStmtPrint  (SExprInt 34)
@@ -52,3 +55,7 @@ testSub01 = SStmtPrint   (SExprBinOp Sub (SExprInt 8) (SExprInt 34))
 
 testSub02 :: SStmt
 testSub02 = SStmtPrint  (SExprBinOp Add (SExprBinOp Sub (SExprInt 1) (SExprInt 2)) (SExprBinOp Sub (SExprInt 3) (SExprInt 4)))
+
+prog01 :: SProgr
+prog01 = SProgr [
+        SStmtPrint (SExprBinOp Add (SExprCall "read_int" []) (SExprUOp USub (SExprCall "read_int" [])))]

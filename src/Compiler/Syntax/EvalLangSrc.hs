@@ -28,5 +28,5 @@ evalSExpr (SExprBinOp op exp1 exp2) = do
     pure (case op of
            Add -> e1 + e2
            Sub -> e1 - e2)
-evalSExpr (SExprCall "getInt" []) = putStr "getInt: Enter integer" >> ((read  <$> getLine) :: IO Int)
+evalSExpr (SExprCall "read_int" []) = (read  <$> getLine) :: IO Int
 evalSExpr e = error ("Error on evaluating expression: " ++ show e)
