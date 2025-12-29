@@ -45,8 +45,8 @@ specEval = do
     it "evalSProg prog04" $ do
         evalProgWith prog04 "" "-25\n"
 
-    it "runWievalSProgthInput prog05" $ do 
-        evalProgWith prog05 "12\n13" "-25\n" 
+    it "runWievalSProgthInput prog08" $ do 
+        evalProgWith prog08 "22\n53" "-31\n" 
 
 testLit01 :: SStmt
 testLit01 = SStmtCall "print"  (SExprInt 34)

@@ -54,5 +54,6 @@ prog06 = SProg [SStmtAssign "z" expr05]
 prog07 :: SProg 
 prog07 = SProg [SStmtCall "print" expr06]
 
-prog0 :: SProg 
-prog0 = SProg [SStmtCall "print" expr06]
+prog08 :: SProg
+prog08 = SProg [
+        SStmtCall "print" (SExprBinOp Add (SExprCall "read_int" []) (SExprUOp USub (SExprCall "read_int" [])))]
