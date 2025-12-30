@@ -20,6 +20,7 @@ library compiler
     import:           warnings
     exposed-modules:  Compiler.Syntax
                       , Compiler.Phases
+                      , Utils
     other-modules:    Compiler.Syntax.LangBase
                       , Compiler.Syntax.LangSrc
                       , Compiler.Syntax.EvalLangSrc
@@ -32,13 +33,20 @@ library compiler
                       , Compiler.Phases.AssignHomes
                       , Compiler.Phases.PatchInstr
                       , Compiler.Phases.ProEpilog
-                      
+                      , Utils.Redir
+                      , Utils.Shell
+                
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0
                       , containers
                       , mtl
                       , megaparsec
                       , parser-combinators
+                      , filepath
+                      , directory
+                      , temporary
+                      , shellmet
+                      , text                         
 
     hs-source-dirs:   src
     default-language: GHC2024
@@ -61,7 +69,7 @@ executable lpy
 test-suite LittlePython-test
     import:           warnings
     default-language: GHC2024
-    other-modules:  Utils.Redir
+    other-modules:  Compiler.Syntax.SpecPreprocess
                     , Compiler.CompilerSpec 
                     , Compiler.Syntax.SpecLangSrc
                     , Compiler.Syntax.SpecLangXAsm86
@@ -81,4 +89,6 @@ test-suite LittlePython-test
         base ^>=4.20.0.0
         , hspec
         , compiler
-        , temporary                         
+        , filepath
+        , directory
+

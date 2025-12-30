@@ -11,7 +11,6 @@ specLangXAsm86 = do
    -- Register
    it "pp Rbp" $ do
        (pp Rbp) `shouldBe` "%rbp"
-       writeFile "susi.txt" "susi"
    -- Destination
    it "pp dst01" $ do
        pp dst01 `shouldBe` "%rax"

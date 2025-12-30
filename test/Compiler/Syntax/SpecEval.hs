@@ -1,7 +1,7 @@
 module Compiler.Syntax.SpecEval (specEval) where
 
 import Test.Hspec
-import Utils.Redir
+import Utils
 import Compiler.Syntax
 import Compiler.Syntax.SampleProgs
 
@@ -36,16 +36,16 @@ specEval = do
     it "evalProgWith prog01" $ do
         evalProgWith prog01 "" "32\n"
 
-    it "evalSProg prog02" $ do
+    it "evalProgWith prog02" $ do
         evalProgWith prog02 "" "42\n"
 
-    it "evalSProg prog03" $ do
+    it "evalProgWith prog03" $ do
         evalProgWith prog03 "" "-20\n"
 
-    it "evalSProg prog04" $ do
+    it "evalProgWith prog04" $ do
         evalProgWith prog04 "" "-25\n"
 
-    it "runWievalSProgthInput prog08" $ do 
+    it "evalProgWith (with input) prog08" $ do 
         evalProgWith prog08 "22\n53" "-31\n" 
 
 testLit01 :: SStmt

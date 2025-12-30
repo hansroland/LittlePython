@@ -7,9 +7,9 @@ selectInstr (MProg stmts) = ProgAsmV 0 $ concat $ selectInstrStmt <$> stmts
 
 selectInstrStmt :: MStmt -> [InstrVar]
 selectInstrStmt (MStmtCall fun (MAtomVar v)) = 
-    [Instr2 Movq (VVar v) (VReg Rdi), Instr0 (Callq fun)]
+    [Instr2 Movq (VVar v) (VReg Rdi), Instr0 (Callq (fixFuncName fun))]
 selectInstrStmt (MStmtCall fun (MAtomInt n)) = 
-    [Instr2 Movq (VImm n) (VReg Rdi), Instr0 (Callq fun)]
+    [Instr2 Movq (VImm n) (VReg Rdi), Instr0 (Callq (fixFuncName fun))]
 
 selectInstrStmt (MStmtAssign v (MExprAtom a )) = [Instr2 Movq (fromAtom a) (VVar v)]
 selectInstrStmt (MStmtAssign v (MExprBinOp op atom1 atom2)) = 
@@ -31,3 +31,11 @@ umop USub op r = [Instr2 Movq op r, Instr1 Negq r]
 fromAtom :: MAtom -> AsmVOp
 fromAtom (MAtomInt n) = VImm n 
 fromAtom (MAtomVar v) = VVar v
+
+-- Translate print function
+-- In the syntax 'print' is used. In the runtime however, the function is called 'print_int.
+-- Hence we have to translate somewhere...
+fixFuncName :: String -> String 
+fixFuncName "print" = "print_int" 
+fixFuncName p = p
+

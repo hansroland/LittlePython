@@ -10,8 +10,9 @@ data Settings = Settings
   , printAh     :: Bool
   , printPatch  :: Bool
   , printEpilog :: Bool
-  , file    :: String
-  }  deriving (Show)
+  , file        :: String
+  , outdir      :: String }  
+  deriving (Show)
 
 getOptions :: IO Settings 
 getOptions =  getOpts defaultSettings options
@@ -25,12 +26,13 @@ defaultSettings = Settings
   , printAh  = False
   , printPatch = False
   , printEpilog = False
+  , outdir = "./bin"
   , file     = ""
   }
 
 options :: OptSpec Settings
 options = optSpec
-  { progDescription = [ "A toy compiler for the LittleePython language." ]
+  { progDescription = [ "A toy compiler for the LittlePython language." ]
 
   , progOptions =
       [ Option ['i'] ["printInp"]
@@ -61,8 +63,12 @@ options = optSpec
         "Display after adding Pro- and Epilog."
         $ NoArg $ \s -> Right s { printEpilog = True }
 
-
-
+      , Option ['o'] ["outdir"]
+        "Output directory for binaries"
+        $ ReqArg "STRING" $ \a s -> 
+             case null a of
+              False -> Right $ s { outdir = a }
+              True  -> Left "outdir is empty"
       ]
   , progParamDocs =
       [ ("FILE",   "The file that needs processing.") ]
