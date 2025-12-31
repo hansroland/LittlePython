@@ -111,7 +111,7 @@ parseProg = do
   stmts <- some pStmt 
   return $ SProg stmts 
 
-parseLpy :: String -> String -> Either String SProg 
+parseLpy :: FilePath -> String -> Either String SProg 
 parseLpy name input = 
   case runParser parseProg name input of 
     Left bundle -> Left $ show $ errorBundlePretty bundle

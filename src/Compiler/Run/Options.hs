@@ -1,4 +1,4 @@
-module Options (Settings(..), getOptions, dumpUsage, options) where  
+module Compiler.Run.Options (Settings(..), getOptions, dumpUsage, options) where  
 
 import SimpleGetOpt 
 
