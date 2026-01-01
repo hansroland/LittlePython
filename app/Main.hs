@@ -11,6 +11,5 @@ main = do
   putStrLn $ concat ["lpy version: ",  __DATE__, " ", __TIME__]
   -- Get the settings
   settings <- getOptions
-  let srcPath = settings.file 
   -- Run the compiler
-  run settings srcPath
+  run settings

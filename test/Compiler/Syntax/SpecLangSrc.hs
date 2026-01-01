@@ -8,11 +8,11 @@ specLangSrc :: Spec
 specLangSrc = do
   describe "Tests for module LangSrc - pretty-print" $ do
     it "testLit01" $ do
-        (pp testLit01) `shouldBe` "print 34"
+        (pp testLit01) `shouldBe` "print (34)"
     it "testNeg01" $ do
-        (pp testNeg01)`shouldBe` "print -42"
+        (pp testNeg01)`shouldBe` "print (-42)"
     it "testNeg02" $ do
-        (pp testNeg02)`shouldBe` "print (8 + -(1 + 2))"
+        (pp testNeg02)`shouldBe` "print (8 + (-(1 + 2)))"
     it "testAdd01" $ do
         (pp testAdd01) `shouldBe` "print (8 + 34)"
     it "testAdd02" $ do

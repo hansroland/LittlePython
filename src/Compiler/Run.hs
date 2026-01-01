@@ -2,6 +2,7 @@ module Compiler.Run (
     -- Options
     Settings(..)
     , getOptions
+    , testSettings
     -- Components
     , run 
     , readAndParseSrc

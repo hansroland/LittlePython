@@ -15,7 +15,7 @@ copyCompiler = do
     let dest = "./bin" </> fn 
     copyFile src dest
 
--- Dummy test, just to copy the exec built by 'cabal build' to the bin directory.
+-- Dummy test, just to copy the built exec by 'cabal build' to the bin directory.
 specPreprocess :: Spec
 specPreprocess = (before_ (copyCompiler)) $ do 
         describe "Phantom Test: Copy lpy exec to bin directory" $ do

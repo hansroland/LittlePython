@@ -17,18 +17,17 @@ import System.IO
 import Control.DeepSeq
 
 -- Run whole compiler 
-run :: Settings -> FilePath -> IO () 
-run settings srcPath = do 
-    ast <- readAndParseSrc settings srcPath
+run :: Settings -> IO () 
+run settings = do 
+    ast <- readAndParseSrc settings
     asm <- compile settings ast 
-    postProcessing settings srcPath asm
-
-
-
+    postProcessing settings asm
 
 -- Read and parse input file
-readAndParseSrc :: Settings -> FilePath -> IO SProg 
-readAndParseSrc settings srcPath = do 
+readAndParseSrc :: Settings -> IO SProg 
+readAndParseSrc settings = do 
+    -- Get path of source to compile
+    let srcPath = settings.file 
     -- Check existence of input file
     _ <- checkSrcPath srcPath
     -- Read in source input
@@ -97,12 +96,12 @@ checkSrcPath srcPath = do
       dumpUsage options
       exitFailure
 
-postProcessing :: Settings -> FilePath -> String -> IO ()
-postProcessing settings srcPath asm = do 
+postProcessing :: Settings -> String -> IO ()
+postProcessing settings asm = do 
     --Is a runtime in the bin dir
     _ <- checkRuntime
     -- Copy and link
-    outname <- copyAsm settings srcPath asm
+    outname <- copyAsm settings asm
     _ <- linkAsm outname
     pure ()
 
@@ -115,8 +114,10 @@ checkRuntime = do
     putStrLn $ "Result gccRuntime" <> res
 
 -- Copy the resulting assembler module to the bin directory
-copyAsm :: Settings -> FilePath -> String -> IO (FilePath)
-copyAsm settings srcPath asm = do
+copyAsm :: Settings -> String -> IO (FilePath)
+copyAsm settings  asm = do
+  -- Get path of source to compile
+  let srcPath = settings.file 
   let fileNm = takeFileName srcPath 
   let outNm = replaceExtension fileNm ".s"
   let outPath = settings.outdir </> outNm

@@ -1,4 +1,5 @@
-module Compiler.Run.Options (Settings(..), getOptions, dumpUsage, options) where  
+module Compiler.Run.Options (Settings(..), getOptions, 
+    dumpUsage, options, testSettings) where  
 
 import SimpleGetOpt 
 
@@ -29,6 +30,9 @@ defaultSettings = Settings
   , outdir = "./bin"
   , file     = ""
   }
+
+testSettings :: FilePath -> Settings
+testSettings path =  defaultSettings{file = path }
 
 options :: OptSpec Settings
 options = optSpec

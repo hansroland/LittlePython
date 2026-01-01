@@ -25,7 +25,9 @@ data SProg = SProg ![SStmt]
 instance PP SProg where
   pp (SProg stmts) = pp stmts
 
-instance PP SStmt where        
+instance PP SStmt where  
+    pp (SStmtCall fun (SExprInt n)) = concat [fun, " (", show n, ")"]
+    pp (SStmtCall fun (SExprVar v)) = concat [fun, " (", v, ")"]
     pp (SStmtCall fun e) = concat [fun, " ", pp e]
     pp (SStmtAssign s e) = concat [s, " = ", pp e]
     pp (SStmtExpr e) = pp e
@@ -37,7 +39,7 @@ instance PP SExpr where
     pp (SExprVar v)           = v 
     pp (SExprBinOp Add e1 e2) = concat [ "(", pp e1, " + ", pp e2, ")" ]
     pp (SExprBinOp Sub e1 e2) = concat [ "(", pp e1, " - ", pp e2, ")" ]
-    pp (SExprUOp USub e)      = concat ["-", pp e]
+    pp (SExprUOp USub e)      = concat ["(-", pp e, ")"]
     pp (SExprCall name args)  = concat ["Call ", name, prtargs]
         where prtargs = concat $ pp <$> args
 
