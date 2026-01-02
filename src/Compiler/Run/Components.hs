@@ -103,6 +103,7 @@ postProcessing settings asm = do
     -- Copy and link
     outname <- copyAsm settings asm
     _ <- linkAsm outname
+    putStrLn $ concat ["File ", outname, " written"]
     pure ()
 
 -- Check, whether we have to rebuild the runtime 

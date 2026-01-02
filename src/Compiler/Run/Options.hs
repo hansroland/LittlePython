@@ -4,15 +4,16 @@ module Compiler.Run.Options (Settings(..), getOptions,
 import SimpleGetOpt 
 
 data Settings = Settings
-  { printInp :: Bool
-  , printAst    :: Bool
-  , printRco    :: Bool 
-  , printSi     :: Bool
-  , printAh     :: Bool
-  , printPatch  :: Bool
-  , printEpilog :: Bool
-  , file        :: String
-  , outdir      :: String }  
+  { printVersion :: Bool
+  , printInp     :: Bool
+  , printAst     :: Bool
+  , printRco     :: Bool 
+  , printSi      :: Bool
+  , printAh      :: Bool
+  , printPatch   :: Bool
+  , printEpilog  :: Bool
+  , file         :: String
+  , outdir       :: String }  
   deriving (Show)
 
 getOptions :: IO Settings 
@@ -20,7 +21,8 @@ getOptions =  getOpts defaultSettings options
 
 defaultSettings :: Settings
 defaultSettings = Settings
-  { printInp = False
+  { printVersion = False
+  , printInp = False
   , printAst = False
   , printRco = False 
   , printSi  = False
@@ -32,7 +34,7 @@ defaultSettings = Settings
   }
 
 testSettings :: FilePath -> Settings
-testSettings path =  defaultSettings{file = path }
+testSettings path =  defaultSettings{file = path } 
 
 options :: OptSpec Settings
 options = optSpec
@@ -66,6 +68,10 @@ options = optSpec
       , Option ['e'] ["printEpilog"]
         "Display after adding Pro- and Epilog."
         $ NoArg $ \s -> Right s { printEpilog = True }
+
+      , Option ['v'] ["version"]  
+        "Display version info" 
+        $ NoArg $ \s -> Right s { printVersion = True }
 
       , Option ['o'] ["outdir"]
         "Output directory for binaries"

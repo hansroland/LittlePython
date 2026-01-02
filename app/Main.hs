@@ -7,9 +7,12 @@ import Compiler.Run
 
 main :: IO ()
 main = do
-  -- Print the createion date of the compiler 
-  putStrLn $ concat ["lpy version: ",  __DATE__, " ", __TIME__]
   -- Get the settings
   settings <- getOptions
-  -- Run the compiler
-  run settings
+  if settings.printVersion 
+    then 
+      -- Print the creation date of the compiler 
+      putStrLn $ concat ["lpy version: ",  __DATE__, " ", __TIME__]
+    else
+      -- Run the compiler
+      run settings

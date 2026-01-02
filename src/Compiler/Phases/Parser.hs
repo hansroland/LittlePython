@@ -107,7 +107,8 @@ pStmt = try pStmtAssign <|> pStmtCall
 
 -- A parser for the whole program
 parseProg :: Parser SProg 
-parseProg = do  
+parseProg = do 
+  sc                    -- Skip whitespaces and comments at the beginning!
   stmts <- some pStmt 
   return $ SProg stmts 
 
