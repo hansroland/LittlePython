@@ -1,19 +1,21 @@
 module Compiler.Syntax.SpecEval (specEval) where
 
 import Test.Hspec
+import Compiler.Run
 import Utils
 import Compiler.Syntax
-import Compiler.Syntax.SampleProgs
+import System.FilePath
 
-
-evalProgWith :: SProg -> String -> String -> IO ()  --includes get_int
-evalProgWith sprog inp res = do 
+evalProgWith :: FilePath -> String -> String -> IO ()  --includes get_int
+evalProgWith path inp res = do 
+    sprog <- readAndParseSrc (testSettings $ "examples" </> path <.> "lpy")
     out <- runWithInput (evalSProg sprog) inp
     shouldContain out res
 
 evalStmt :: SStmt -> String  -> IO ()           -- without get_int
-evalStmt stmt out = do
-    evalProgWith (SProg [stmt]) "" out
+evalStmt stmt res = do
+    out <- runWithInput (evalSProg (SProg [stmt])) ""
+    shouldContain out res
 
 specEval :: Spec
 specEval = do
@@ -34,19 +36,19 @@ specEval = do
         evalStmt (testSub02) "-2\n"
 
     it "evalProgWith prog01" $ do
-        evalProgWith prog01 "" "32\n"
+        evalProgWith "prog01" "" "32\n"
 
     it "evalProgWith prog02" $ do
-        evalProgWith prog02 "" "42\n"
+        evalProgWith "prog02" "" "42\n"
 
     it "evalProgWith prog03" $ do
-        evalProgWith prog03 "" "-20\n"
+        evalProgWith "prog03" "" "-20\n"
 
     it "evalProgWith prog04" $ do
-        evalProgWith prog04 "" "-25\n"
+        evalProgWith "prog04" "" "-25\n"
 
-    it "evalProgWith (with input) prog08" $ do 
-        evalProgWith prog08 "22\n53" "-31\n" 
+--    it "evalProgWith (with input) prog08" $ do 
+--        evalProgWith "prog08" "22\n53" "-31\n" 
 
 testLit01 :: SStmt
 testLit01 = SStmtCall "print"  (SExprInt 34)

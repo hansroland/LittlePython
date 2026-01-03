@@ -8,13 +8,13 @@ data SExpr =
     SExprInt !Int
     | SExprVar !String
     | SExprBinOp !BinOp !SExpr !SExpr
-    | SExprUOp !UnaryOp !SExpr
-    | SExprCall !String ![SExpr]
+    | SExprUOp !UnaryOp !SExpr      
+    | SExprFunc !String  -- ![SExpr]  -- TODO: Support parameters
   deriving (Eq, Show)
 
 data SStmt = SStmtCall !String !SExpr
           | SStmtAssign !String !SExpr
-          | SStmtExpr  !SExpr
+          | SStmtExpr  !SExpr         -- TODO: Support multiple parameters.
   deriving (Eq, Show)
 
 data SProg = SProg ![SStmt]
@@ -40,8 +40,8 @@ instance PP SExpr where
     pp (SExprBinOp Add e1 e2) = concat [ "(", pp e1, " + ", pp e2, ")" ]
     pp (SExprBinOp Sub e1 e2) = concat [ "(", pp e1, " - ", pp e2, ")" ]
     pp (SExprUOp USub e)      = concat ["(-", pp e, ")"]
-    pp (SExprCall name args)  = concat ["Call ", name, prtargs]
-        where prtargs = concat $ pp <$> args
+    pp (SExprFunc fun {-args-})  = concat [fun, "(", {-prtargs,-} ")"]
+        -- where prtargs = concat $ pp <$> args
 
 -- Helper Functions
 isSLeaf :: SExpr -> Bool 
@@ -49,4 +49,4 @@ isSLeaf (SExprInt _) = True
 isSLeaf (SExprVar _) = True
 isSLeaf (SExprBinOp _ _ _) = False
 isSLeaf (SExprUOp _ _) = False
-isSLeaf (SExprCall _ _) = False 
+isSLeaf (SExprFunc _) = False 

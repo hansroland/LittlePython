@@ -15,6 +15,10 @@ selectInstrStmt (MStmtAssign v (MExprAtom a )) = [Instr2 Movq (fromAtom a) (VVar
 selectInstrStmt (MStmtAssign v (MExprBinOp op atom1 atom2)) = 
     binop op (fromAtom atom1) (fromAtom atom2) (VVar v) 
 selectInstrStmt (MStmtAssign v (MExprUOp uop a)) = umop uop (fromAtom a) (VVar v)
+
+selectInstrStmt (MStmtExpr (MExprFunc var fun)) = 
+    [Instr0 (Callq (fixFuncName fun)), Instr2 Movq (VReg Rax) (VVar var)]
+
 selectInstrStmt mstmt = error $ "selectInstr unknown stmt: " <> show mstmt
 
 binop :: BinOp -> AsmVOp -> AsmVOp -> AsmVOp -> [InstrVar]
@@ -36,6 +40,6 @@ fromAtom (MAtomVar v) = VVar v
 -- In the syntax 'print' is used. In the runtime however, the function is called 'print_int.
 -- Hence we have to translate somewhere...
 fixFuncName :: String -> String 
-fixFuncName "print" = "print_int" 
+fixFuncName "print"  = "print_int" 
+fixFuncName "getInt" = "read_int"
 fixFuncName p = p
-

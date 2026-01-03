@@ -42,10 +42,10 @@ aExpr = makeExprParser aTerm table <?> "expression"
 
 -- aTerm - Arithmetic term parser
 aTerm :: Parser SExpr
-aTerm = parens aExpr
+aTerm = try function 
+  <|> parens aExpr
   <|> SExprVar <$> identifier
   <|> SExprInt <$> integer 
-
 
 -- Table to define the expression. 
 --   The inner lists are in descending precedence
@@ -56,7 +56,7 @@ table =  [[ prefix  "-"  (SExprUOp USub)]
 --         , [ binary  "*"  (*)
 --        , binary  "/"  div  ]
          , [ binary  "+"  (SExprBinOp Add)
-           ,binary  "-"  (SExprBinOp Sub) ] ]
+           , binary  "-"  (SExprBinOp Sub) ] ]
   where
     binary  name f = InfixL  (f <$ symbol name)
     prefix  name f = Prefix  (f <$ symbol name)
@@ -70,6 +70,15 @@ identifier = (lexeme . try) (p >>= check)
     check x = if x `elem` rws
                 then fail $ "keyword " ++ show x ++ " cannot be an identifier"
                 else return x
+
+-- parse a function call
+function :: Parser SExpr  
+function = do 
+    fun <- symbol "getInt"
+    void $ char '(' >> sc
+    -- args <- aExpr `sepBy` (char ',' >> sc ) -- TODO Add arguments
+    void $ char ')' >> sc
+    pure $ SExprFunc fun
 
 -- rword - parse a reserved word (aka keywordS)       (NOT YET USED)
 -- rword :: String -> Parser ()
@@ -101,7 +110,7 @@ pStmt = try pStmtAssign <|> pStmtCall
 
     pStmtCall :: Parser SStmt 
     pStmtCall = do
-        fun <- identifier
+        fun <- symbol "print"
         ex  <- parens aExpr 
         pure $ SStmtCall fun ex 
 

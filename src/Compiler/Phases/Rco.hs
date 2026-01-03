@@ -62,14 +62,16 @@ rcoExpr (SExprUOp op ex) a = do
     let newUnop = [MStmtAssign a (MExprUOp op atom)]
     pure $ stmtsUn <> newUnop
     
-rcoExpr (SExprCall fun es) _ = do
-    pairs <- mapM rcoExprChild es                    -- :t pairs = [(MAtom, [MStmt])]
-    let atoms = fst <$> pairs  
-    let stmts = concat $ snd <$> pairs           
-    let newCall = [MStmtExpr (MExprCall fun atoms)]
-    pure $ stmts <> newCall 
+rcoExpr (SExprFunc fun {-es-}) a = do                   -- TODO add funtion arguments
+    pure $ [MStmtExpr (MExprFunc a fun)]
 
--- conver a child of an expression, eg: rhs, lhs, unop-argument
+    -- pairs <- mapM rcoExprChild es                    -- :t pairs = [(MAtom, [MStmt])]
+    -- let atoms = fst <$> pairs  
+    -- let stmts = concat $ snd <$> pairs           
+    -- let newCall = [MStmtExpr (MExprFunc fun atoms)]
+    -- pure $ stmts <> newCall 
+
+-- convert a child of an expression, eg: rhs, lhs, unop-argument
 -- Returns the atom of the top level of the expression
 --   and a list of statements of all the child statements
 rcoExprChild :: SExpr -> RcoMonad (MAtom, [MStmt])
@@ -81,7 +83,7 @@ rcoExprChild ch = do
         stmts <- rcoExpr ch assign
         pure $ (MAtomVar assign, stmts)
 
--- Return the assignment variable of an source expression    
+-- Return the assignment variable of a source expression    
 getAssignVar :: SExpr -> RcoMonad String
 getAssignVar (SExprVar str) = pure str 
 getAssignVar _ = getNewVar

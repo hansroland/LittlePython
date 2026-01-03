@@ -13,6 +13,8 @@ specLangSrc = do
         (pp testNeg01)`shouldBe` "print (-42)"
     it "testNeg02" $ do
         (pp testNeg02)`shouldBe` "print (8 + (-(1 + 2)))"
+    it "testNeg03" $ do
+        (pp testNeg03)`shouldBe` "print (-34)"
     it "testAdd01" $ do
         (pp testAdd01) `shouldBe` "print (8 + 34)"
     it "testAdd02" $ do
@@ -31,6 +33,9 @@ testNeg01 = SStmtCall "print" (SExprUOp USub(SExprInt  42))
 
 testNeg02 :: SStmt
 testNeg02 = SStmtCall "print" (SExprBinOp Add (SExprInt 8) (SExprUOp USub ((SExprBinOp Add  (SExprInt 1) (SExprInt 2)))))
+
+testNeg03 :: SStmt 
+testNeg03 = SStmtCall "print" (SExprInt (-34))
 
 testAdd01 :: SStmt
 testAdd01 = SStmtCall "print" (SExprBinOp Add (SExprInt 8) (SExprInt 34))

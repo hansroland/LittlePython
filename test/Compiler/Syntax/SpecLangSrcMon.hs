@@ -19,9 +19,9 @@ specLangSrcMon = do
    it "pp expr03" $ do
        (pp expr03) `shouldBe` " -variable"
    it "pp expr04" $ do
-       (pp expr04) `shouldBe` "call read_int()"
+       (pp expr04) `shouldBe` "tmp_0 = getInt()"
    it "pp stmt01" $ do
-       (pp stmt01) `shouldBe` "print_int 5"
+       (pp stmt01) `shouldBe` "printInt 5"
    it "pp stmt02" $ do
        (pp stmt02) `shouldBe` "myVar = 5 + variable"
 
@@ -41,10 +41,10 @@ expr03 :: MExpr
 expr03 = MExprUOp USub atm02 
 
 expr04 :: MExpr
-expr04 = MExprCall "read_int" []
+expr04 = MExprFunc "tmp_0" "getInt"
 
 stmt01 :: MStmt 
-stmt01 = MStmtCall "print_int" atm01
+stmt01 = MStmtCall "printInt" atm01
 
 stmt02 :: MStmt 
 stmt02 = MStmtAssign "myVar" expr02

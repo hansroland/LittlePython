@@ -2,7 +2,7 @@
 module Compiler.Syntax.LangSrcMon  where
 
 import Compiler.Syntax.LangBase
-import Data.List (intercalate)
+-- import Data.List (intercalate)
 
 -- A program of our object language
 data MProg = MProg ![MStmt]
@@ -17,7 +17,7 @@ data MExpr =
     MExprAtom !MAtom
     | MExprBinOp !BinOp !MAtom !MAtom
     | MExprUOp !UnaryOp !MAtom
-    | MExprCall !String ![MAtom]        -- read_int  !!
+    | MExprFunc !String !String -- ![MAtom] -- tempvar read_int  !! -- TODO add function arguments
   deriving (Show, Eq)
 
 data MAtom =
@@ -37,7 +37,8 @@ instance PP MExpr where
   pp (MExprAtom atom) = pp atom
   pp (MExprBinOp binop lhs rhs) = concat [pp lhs, pp binop, pp rhs]
   pp (MExprUOp unop atom) = concat [pp unop, pp atom]
-  pp (MExprCall fun atms) = concat ["call ", fun, "(", intercalate "," (pp <$> atms), ")"]        
+  pp (MExprFunc tmpVar fun {-atms-}) = concat [tmpVar, " = ", fun, "()"]
+         -- concat [fun, "(", {-intercalate "," (pp <$> atms), -} ")"]        
 
 instance PP MAtom where
   pp (MAtomInt n) = show n

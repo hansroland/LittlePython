@@ -1,1 +1,1 @@
-print ((Call read_int) + (Call read_int))
+print (getInt() + getInt())
