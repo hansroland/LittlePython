@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Utils.Shell (getExePath, linkAsm, gccRuntime) where 
+module Utils.Shell where 
 
 import Shellmet 
 import System.FilePath
@@ -22,3 +22,8 @@ gccRuntime = do
     res <- "gcc" $| ["-c", "src/Cbits/runtime.c", "-o", "bin/runtime.o"]
     pure $ T.unpack res
 
+compileAndRun :: FilePath -> IO String 
+compileAndRun prog = do 
+    _ <- ("bin" </> "lpy") $| [T.pack ("examples" </> prog <.> ".lpy")]
+    res <- ("bin" </> prog) $| [T.empty]
+    pure $ (T.unpack res) ++ "\n" 

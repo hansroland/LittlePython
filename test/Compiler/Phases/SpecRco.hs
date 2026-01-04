@@ -19,10 +19,6 @@ specRco = do
        (testrco "examples/prog04.lpy") `shouldReturn` "x = 42 - 84\ntmp_0 = 42 - 84\ny = tmp_0 + 25\ntmp_1 = x - y\nprint tmp_1" 
     it "testrco examples/prog05.lpy" $ do
        (testrco "examples/prog05.lpy") `shouldReturn` "tmp_1 = getInt()\ntmp_2 = getInt()\ntmp_0 = tmp_1 + tmp_2\nprint tmp_0" 
---    it "pp $ rco prog06" $ do
---       (pp $ rco prog06) `shouldBe` "tmp_0 = var1 - var2\ntmp_1 = var3 - var4\nz = tmp_0 + tmp_1" 
---    it "pp $ rco prog07" $ do
---        (pp $ rco prog07) `shouldBe` "tmp_1 =  -y\ntmp_0 = x + tmp_1\nprint tmp_0" 
 
 testrco :: FilePath -> IO String 
 testrco path = do 

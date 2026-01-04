@@ -3,23 +3,30 @@ module Compiler.Phases.SelectInstr where
 import Compiler.Syntax
 
 selectInstr :: MProg -> ProgAsmV
-selectInstr (MProg stmts) = ProgAsmV 0 $ concat $ selectInstrStmt <$> stmts
+selectInstr (MProg stmts) = ProgAsmV 0 $ concat $ siStmt <$> stmts
 
-selectInstrStmt :: MStmt -> [InstrVar]
-selectInstrStmt (MStmtCall fun (MAtomVar v)) = 
+siStmt :: MStmt -> [InstrVar]
+siStmt (MStmtCall fun atom )  = siStmtCall fun atom 
+siStmt (MStmtAssign fun expr) = siStmtAssign fun expr
+siStmt (MStmtExpr e ) = siStmtExpr e
+
+siStmtCall :: String -> MAtom -> [InstrVar]
+siStmtCall fun (MAtomVar v) =
     [Instr2 Movq (VVar v) (VReg Rdi), Instr0 (Callq (fixFuncName fun))]
-selectInstrStmt (MStmtCall fun (MAtomInt n)) = 
+siStmtCall fun (MAtomInt n) = 
     [Instr2 Movq (VImm n) (VReg Rdi), Instr0 (Callq (fixFuncName fun))]
 
-selectInstrStmt (MStmtAssign v (MExprAtom a )) = [Instr2 Movq (fromAtom a) (VVar v)]
-selectInstrStmt (MStmtAssign v (MExprBinOp op atom1 atom2)) = 
+siStmtAssign :: String -> MExpr -> [InstrVar]
+siStmtAssign v (MExprAtom a ) = [Instr2 Movq (fromAtom a) (VVar v)]
+siStmtAssign v (MExprBinOp op atom1 atom2) = 
     binop op (fromAtom atom1) (fromAtom atom2) (VVar v) 
-selectInstrStmt (MStmtAssign v (MExprUOp uop a)) = umop uop (fromAtom a) (VVar v)
+siStmtAssign v (MExprUOp uop a) = umop uop (fromAtom a) (VVar v)
+siStmtAssign _ e = error $ "selectInstr.siStmtAssign NOT_IMPL e: " <> show e
 
-selectInstrStmt (MStmtExpr (MExprFunc var fun)) = 
+siStmtExpr :: MExpr -> [InstrVar]
+siStmtExpr (MExprFunc var fun) = 
     [Instr0 (Callq (fixFuncName fun)), Instr2 Movq (VReg Rax) (VVar var)]
-
-selectInstrStmt mstmt = error $ "selectInstr unknown stmt: " <> show mstmt
+siStmtExpr e = error $ "selectInstr.siStmtExpr NOT_IMPL e: " <> show e
 
 binop :: BinOp -> AsmVOp -> AsmVOp -> AsmVOp -> [InstrVar]
 binop Add op1 op2 res 

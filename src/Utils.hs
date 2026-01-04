@@ -4,6 +4,7 @@ module Utils (
     , getExePath
     , linkAsm
     , gccRuntime
+    , compileAndRun
     ) where
 
 import Utils.Redir 

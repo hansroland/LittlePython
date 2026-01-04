@@ -20,5 +20,6 @@ epilog :: Int -> [InstrInt]
 epilog frm16 = 
     [ Instr2 Addq (IImm frm16) (IReg Rsp)
     , Instr1 Popq (IReg Rbp)
+    , Instr2 Movq (IImm 0) (IReg Rax)             -- set returncode to 0
     , Instr0 Retq
     ]

@@ -1,0 +1,4 @@
+# Two print statements
+x = (42 + -10)
+print (x)
+print (45)

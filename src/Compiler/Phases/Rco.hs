@@ -20,31 +20,32 @@ rco (SProg lestmts) =
 
 -- Convert a single statement
 rcoStmt :: SStmt -> RcoMonad [MStmt]
-rcoStmt (SStmtCall fun (SExprVar v)) =                     -- print simple variable expr
-    pure $ [MStmtCall fun (MAtomVar v)]
-rcoStmt (SStmtCall fun (SExprInt n)) =                     -- print simple integer expr
-    pure $ [MStmtCall fun (MAtomInt n)]
-rcoStmt (SStmtCall fun e) = do                               -- print complex expr
+rcoStmt (SStmtCall fun e) = rcoStmtCall fun e 
+rcoStmt (SStmtExpr e)     = rcoStmtExpr e
+rcoStmt (SStmtAssign a e) = rcoStmtAssign a e 
+
+rcoStmtCall :: String -> SExpr -> RcoMonad [MStmt]
+rcoStmtCall fun (SExprVar v) = pure $ [MStmtCall fun (MAtomVar v)]
+rcoStmtCall fun (SExprInt n) = pure $ [MStmtCall fun (MAtomInt n)]
+rcoStmtCall fun e = do 
     newVar <- getAssignVar e
     atms <- rcoExpr e newVar
     pure $ concat [atms, [MStmtCall fun (MAtomVar newVar)]]
 
-rcoStmt (SStmtExpr (SExprVar v)) =                     -- simple variable expr
-    pure $ [MStmtExpr (MExprAtom(MAtomVar v))]
-rcoStmt (SStmtExpr (SExprInt n)) =                     -- simple int expr
-    pure $ [MStmtExpr (MExprAtom(MAtomInt n))]
-rcoStmt (SStmtExpr e) = do                               -- complex expr
+rcoStmtExpr :: SExpr -> RcoMonad [MStmt]
+rcoStmtExpr (SExprVar v) = pure $ [MStmtExpr (MExprAtom(MAtomVar v))]
+rcoStmtExpr (SExprInt n) = pure $ [MStmtExpr (MExprAtom(MAtomInt n))]
+rcoStmtExpr e = do
     newVar <- getAssignVar e
     atms <- rcoExpr e newVar  
     pure $ concat [atms, [MStmtExpr (getExpr (last atms))]]
 
-rcoStmt (SStmtAssign a (SExprVar v)) =                     -- assign simple atom variable
-    pure $ [MStmtAssign a (MExprAtom(MAtomVar v))]
-rcoStmt (SStmtAssign a (SExprInt n)) =                     -- assign seimple int variable   
-    pure $ [MStmtAssign a (MExprAtom(MAtomInt n))]
-rcoStmt (SStmtAssign s e) = do                              -- assign complex variable
-    atms <- rcoExpr e s
-    pure $ init atms ++ [MStmtAssign s (getExpr (last atms))]
+rcoStmtAssign :: String -> SExpr -> RcoMonad [MStmt]
+rcoStmtAssign a (SExprVar v) = pure $ [MStmtAssign a (MExprAtom(MAtomVar v))]
+rcoStmtAssign a (SExprInt n) = pure $ [MStmtAssign a (MExprAtom(MAtomInt n))]
+rcoStmtAssign a e = do 
+    atms <- rcoExpr e a
+    pure $ init atms ++ [MStmtAssign a (getExpr (last atms))]
 
 -- Convert an expression
 rcoExpr :: SExpr -> String -> RcoMonad [MStmt]
