@@ -1,9 +1,8 @@
 module Utils (
-    redirect
+    rtrimnl
+    , redirect
     , runWithInput
-    , getExePath
-    , linkAsm
-    , gccRuntime
+    , runProcess
     , compileAndRun
     ) where
 

@@ -6,49 +6,54 @@ import Utils
 import Compiler.Syntax
 import System.FilePath
 
-evalProgWith :: FilePath -> String -> String -> IO ()  --includes get_int
-evalProgWith path inp res = do 
+evalProgWith :: FilePath -> String -> IO String  --includes get_int
+evalProgWith path inp = do 
     sprog <- readAndParseSrc (testSettings $ "examples" </> path <.> "lpy")
     out <- runWithInput (evalSProg sprog) inp
-    shouldContain out res
+    pure out
 
-evalStmt :: SStmt -> String  -> IO ()           -- without get_int
-evalStmt stmt res = do
-    out <- runWithInput (evalSProg (SProg [stmt])) ""
-    shouldContain out res
+evalStmt :: SStmt -> IO String               -- without get_int
+evalStmt stmt = do
+    runWithInput (evalSProg (SProg [stmt])) ""
 
 specEval :: Spec
 specEval = do
   describe "Tests for module LangInt.Eval" $ do
     it "evalStmt testLit01" $ do
-        evalStmt testLit01 "34\n"
+        evalStmt testLit01 `shouldReturn` "34\n"
     it "evalStmt testNeg01" $ do
-        evalStmt (testNeg01) "-42\n"
+        evalStmt (testNeg01) `shouldReturn` "-42\n"
     it "evalStmt testNeg02" $ do
-        evalStmt (testNeg02) "5\n"
+        evalStmt (testNeg02) `shouldReturn` "5\n"
     it "evalStmt testAdd01" $ do
-        evalStmt (testAdd01) "42\n"
+        evalStmt (testAdd01) `shouldReturn` "42\n"
     it "evalStmt testAdd02" $ do
-        evalStmt (testAdd02) "10\n"
+        evalStmt (testAdd02) `shouldReturn` "10\n"
     it "evalStmt testSub01" $ do
-        evalStmt (testSub01) "-26\n"
+        evalStmt (testSub01) `shouldReturn` "-26\n"
     it "evalStmt testSub02" $ do
-        evalStmt (testSub02) "-2\n"
+        evalStmt (testSub02) `shouldReturn` "-2\n"
 
     it "evalProgWith prog01" $ do
-        evalProgWith "prog01" "" "32\n"
+        evalProgWith "prog01" "" `shouldReturn` "32\n"
 
     it "evalProgWith prog02" $ do
-        evalProgWith "prog02" "" "42\n"
+        evalProgWith "prog02" "" `shouldReturn` "42\n"
 
     it "evalProgWith prog03" $ do
-        evalProgWith "prog03" "" "-20\n"
+        evalProgWith "prog03" "" `shouldReturn` "-20\n"
 
     it "evalProgWith prog04" $ do
-        evalProgWith "prog04" "" "-25\n"
+        evalProgWith "prog04" "" `shouldReturn` "-25\n"
 
---    it "evalProgWith (with input) prog08" $ do 
---        evalProgWith "prog08" "22\n53" "-31\n" 
+    it "evalProgWith (with input) prog05" $ do 
+        evalProgWith "prog05" "30\n12\n" `shouldReturn` "42\n" 
+
+    it "evalProgWith prog06" $ do
+        evalProgWith "prog06" "" `shouldReturn` "32\n45\n"
+    
+    it "compileAndRun prog06" $ do 
+        compileAndRun "prog06" `shouldReturn` "32\n45\n"
 
 testLit01 :: SStmt
 testLit01 = SStmtCall "print"  (SExprInt 34)

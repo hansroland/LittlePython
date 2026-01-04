@@ -48,8 +48,6 @@ library compiler
                       , filepath
                       , directory
                       , temporary
-                      , shellmet
-                      , text 
                       , simple-get-opt 
                       , deepseq 
                       , process                      

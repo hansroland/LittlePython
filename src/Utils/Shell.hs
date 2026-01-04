@@ -2,28 +2,41 @@
 
 module Utils.Shell where 
 
-import Shellmet 
+import System.Process hiding (runProcess)
+import System.Exit
 import System.FilePath
-import qualified Data.Text as T
+import System.IO
 
 -- Get the path where cabal hides the executable
-getExePath :: IO FilePath
-getExePath =  do   
-    expath <- "cabal" $| ["list-bin", "lpy"] 
-    pure $ T.unpack expath
+-- testProcess :: IO FilePath 
+-- testProcess = do 
+--     (_, Just hout, _, _) <-  createProcess (proc "ls" []){ std_out = CreatePipe }
+--    let params = CreateProcess {
+--        std_out = CreatePipe
+--    }
 
-linkAsm :: FilePath ->  IO String
-linkAsm inPath  = do 
-    res <- "gcc" $| [T.pack inPath, "bin/runtime.o", "-o", T.pack (dropExtension inPath)]
-    pure $ T.unpack res
+-- Attention: For big outputs this may result in a deadlock
+--     https://passingcuriosity.com/2015/haskell-reading-process-safe-deadlock/
 
-gccRuntime :: IO String 
-gccRuntime = do
-    res <- "gcc" $| ["-c", "src/Cbits/runtime.c", "-o", "bin/runtime.o"]
-    pure $ T.unpack res
+runProcess  :: String -> IO String
+runProcess cmd = do
+    let params = (shell cmd)
+            { std_in  = Inherit
+            , std_out = CreatePipe
+            , std_err = Inherit
+            }
+    (Nothing, Just out, Nothing, ph) <- createProcess params
+    ec <- waitForProcess ph
+    case ec of
+        ExitSuccess   -> hGetContents out
+        ExitFailure _ -> error "Error in Shell.hs runProcess"
+
+-- Right trim newline
+-- Remove the newlines at the end of a string
+rtrimnl :: String -> String
+rtrimnl = reverse . dropWhile (=='\n') . reverse 
 
 compileAndRun :: FilePath -> IO String 
 compileAndRun prog = do 
-    _ <- ("bin" </> "lpy") $| [T.pack ("examples" </> prog <.> ".lpy")]
-    res <- ("bin" </> prog) $| [T.empty]
-    pure $ (T.unpack res) ++ "\n" 
+    _ <- runProcess $ "bin" </> "lpy examples" </> prog <.> "lpy"
+    runProcess $ "bin" </> prog

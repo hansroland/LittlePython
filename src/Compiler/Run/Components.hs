@@ -99,19 +99,18 @@ checkSrcPath srcPath = do
 postProcessing :: Settings -> String -> IO ()
 postProcessing settings asm = do 
     --Is a runtime in the bin dir
-    _ <- checkRuntime
+    checkRuntime
     -- Copy and link
     outname <- copyAsm settings asm
-    _ <- linkAsm outname
+    _ <- runProcess $ concat ["gcc ", outname, " bin/runtime.o  -o ", dropExtension outname]
     putStrLn $ concat ["File ", outname, " written"]
-    pure ()
 
 -- Check, whether we have to rebuild the runtime 
 checkRuntime :: IO ()
 checkRuntime = do 
   exist <- doesFileExist "bin/runtime.o"
   unless exist $ do
-    res <- gccRuntime
+    res <- runProcess "gcc -c src/Cbits/runtime.c -o bin/runtime.o"
     putStrLn $ "Result gccRuntime" <> res
 
 -- Copy the resulting assembler module to the bin directory

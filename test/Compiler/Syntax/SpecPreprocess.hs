@@ -10,8 +10,9 @@ import System.Directory(copyFile)
 -- Copy the lpy compiler to the bin directory of the project.
 copyCompiler :: IO ()
 copyCompiler = do
-    src <- getExePath
-    let fn = takeFileName src 
+    src' <- runProcess "cabal list-bin lpy" 
+    let src = rtrimnl src'           -- Remove trailing newlines at end    
+    let fn = takeFileName src
     let dest = "./bin" </> fn 
     copyFile src dest
 
