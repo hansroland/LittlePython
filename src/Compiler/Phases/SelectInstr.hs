@@ -21,7 +21,8 @@ siStmtAssign v (MExprAtom a ) = [Instr2 Movq (fromAtom a) (VVar v)]
 siStmtAssign v (MExprBinOp op atom1 atom2) = 
     binop op (fromAtom atom1) (fromAtom atom2) (VVar v) 
 siStmtAssign v (MExprUOp uop a) = umop uop (fromAtom a) (VVar v)
-siStmtAssign _ e = error $ "selectInstr.siStmtAssign NOT_IMPL e: " <> show e
+siStmtAssign v (MExprFunc _ fun) = 
+    [Instr0 (Callq (fixFuncName fun)), Instr2 Movq (VReg Rax)(VVar v) ]
 
 siStmtExpr :: MExpr -> [InstrVar]
 siStmtExpr (MExprFunc var fun) = 

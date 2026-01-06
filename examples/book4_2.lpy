@@ -1,0 +1,4 @@
+# Example from Figure 4.2
+x = getInt() 
+y = getInt()
+print ((x + y) + 42)
