@@ -12,7 +12,7 @@ module Compiler.Phases.OptSExpr (
 
 import Compiler.Syntax
 
--- Optimize Constants:
+-- | Optimize Constants:
 --   Replace: ExprBinOp Add (ExprInt x) (ExprInt y) => (ExprInt (x+y))
 --            ExprBinOp Sub (ExprInt x) (ExprInt y) => (ExprInt (x-y))
 optimizeSProg :: SProg -> SProg
@@ -44,7 +44,7 @@ optConstSub (SExprInt n1) (SExprInt n2) = SExprInt (n1 - n2)
 optConstSub e1 e2 = SExprBinOp Sub e1 e2
 
 
--- Optimizing the Unary Sub operation (aka negation)
+-- | Optimizing the Unary Sub operation (aka negation)
 --   Remove double negations
 --      Replace: ExprUOp USub (ExprInt n) => (ExprInt -n)
 --   Push negation to leafs

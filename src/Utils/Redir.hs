@@ -5,7 +5,7 @@ module Utils.Redir where
 import Control.Exception (bracket, finally, evaluate)
 import GHC.IO.Handle (hDuplicate, hDuplicateTo, hGetContents)
 import System.IO (stdin, stdout, openFile, withFile, IOMode(ReadMode, WriteMode), hClose)
-import System.IO.Temp (writeSystemTempFile, emptySystemTempFile)
+import System.IO.Temp (emptySystemTempFile)
 import Control.DeepSeq
 
 

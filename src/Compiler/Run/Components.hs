@@ -13,18 +13,18 @@ import Control.Monad (when, unless)
 import System.FilePath
 import System.Directory
 
--- Run whole compiler 
+-- | Run whole compiler 
 run :: Settings -> IO () 
 run settings = do 
     ast <- readAndParseSrc settings
     asm <- compile settings ast 
     postProcessing settings asm
 
--- Read and parse input file
+-- | Read and parse input file
 readAndParseSrc :: Settings -> IO SProg 
 readAndParseSrc settings = do 
     -- Get path of source to compile
-    let srcPath = settings.file 
+    let srcPath = settings.srcFile 
     -- Check existence of input file
     _ <- checkSrcPath srcPath
     -- Read in source input
@@ -44,7 +44,7 @@ readAndParseSrc settings = do
         printPhaseRslt "Ast : " $ pp ast
     return ast 
 
--- the compiler step
+-- | The compiler step
 compile :: Settings -> SProg -> IO String
 compile settings ast = do
       -- Remove complex instructions
@@ -71,13 +71,14 @@ compile settings ast = do
 
 -- Helper functions
 
--- Print out the results of a compilation phase
+-- | Print out the results of a compilation phase
 printPhaseRslt :: String -> String -> IO ()
 printPhaseRslt title part = do 
   putStrLn title
   putStrLn ""
   putStrLn $ part <> "\n\n"
 
+-- | Check whether the path of the source file exists
 checkSrcPath :: FilePath -> IO ()
 checkSrcPath srcPath = do 
   exists <- doesFileExist srcPath 
@@ -88,16 +89,17 @@ checkSrcPath srcPath = do
       dumpUsage options
       exitFailure
 
+-- | Run steps after compilation
 postProcessing :: Settings -> String -> IO ()
 postProcessing settings asm = do 
-    --Is a runtime in the bin dir
+    -- | Is a runtime in the bin dir
     checkRuntime
-    -- Copy and link
+    -- | Copy and link
     outname <- copyAsm settings asm
     _ <- runProcess $ concat ["gcc ", outname, " bin/runtime.o  -o ", dropExtension outname]
     putStrLn $ concat ["File ", outname, " written"]
 
--- Check, whether we have to rebuild the runtime 
+-- | Check, whether we have to rebuild the runtime 
 checkRuntime :: IO ()
 checkRuntime = do 
   exist <- doesFileExist "bin/runtime.o"
@@ -105,11 +107,11 @@ checkRuntime = do
     res <- runProcess "gcc -c src/Cbits/runtime.c -o bin/runtime.o"
     putStrLn $ "Result gccRuntime" <> res
 
--- Copy the resulting assembler module to the bin directory
+-- | Copy the resulting assembler module to the bin directory
 copyAsm :: Settings -> String -> IO (FilePath)
 copyAsm settings  asm = do
   -- Get path of source to compile
-  let srcPath = settings.file 
+  let srcPath = settings.srcFile 
   let fileNm = takeFileName srcPath 
   let outNm = replaceExtension fileNm ".s"
   let outPath = settings.outdir </> outNm

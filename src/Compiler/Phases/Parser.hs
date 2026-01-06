@@ -11,43 +11,52 @@ import Control.Monad
 
 type Parser = Parsec Void String
 
+-- | Parse the source code from a program
+parseLpy :: FilePath -> String -> Either String SProg 
+parseLpy name inSrc = 
+  case runParser parseProg name inSrc of 
+    Left bundle -> Left $ show $ errorBundlePretty bundle
+    Right p -> Right p
+
+
 -- Lexer functions
 
--- Space Consumer
+-- | sc - Space Consumer
 sc :: Parser ()
 sc = L.space (void spaceChar) lineCmnt blockCmnt
   where lineCmnt  = L.skipLineComment "#"
         blockCmnt = L.skipBlockComment "\"\"\"" "\"\"\"" 
 
+-- | Get the next lexeme
 -- Strategy: Whitespaces will be consumed after every lexeme automatically, 
 --   but not before it.
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc 
 
--- symbol - parse a given string aka a symbol 
+-- | symbol - parse a given string aka a symbol 
 symbol :: String -> Parser String
 symbol = L.symbol sc
 
--- parens - Parse something between parenthesis
+-- | parens - Parse something between parenthesis
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")") 
 
--- integer - parse an int  (Note: decimal is polymorphic in it's Num type)
+-- | integer - parse an int  (Note: decimal is polymorphic in it's Num type)
 integer :: Parser Int
 integer = lexeme L.decimal 
 
--- Expression parser 
+-- | Expression parser 
 aExpr :: Parser SExpr
 aExpr = makeExprParser aTerm table <?> "expression"
 
--- aTerm - Arithmetic term parser
+-- aTerm - Parse an arithmetic term
 aTerm :: Parser SExpr
 aTerm = try function 
   <|> parens aExpr
   <|> SExprVar <$> identifier
   <|> SExprInt <$> integer 
 
--- Table to define the expression. 
+-- | Table to define the expression. 
 --   The inner lists are in descending precedence
 table :: [[Operator Parser SExpr]]
 table =  [[ prefix  "-"  (SExprUOp USub)]
@@ -62,7 +71,7 @@ table =  [[ prefix  "-"  (SExprUOp USub)]
     prefix  name f = Prefix  (f <$ symbol name)
     -- postfix name f = Postfix (f <$ symbol name)
 
--- identifier - parse a variable name
+-- | identifier - parse a variable name
 identifier :: Parser String
 identifier = (lexeme . try) (p >>= check)
   where
@@ -96,7 +105,7 @@ rws = [
     "form",     "or",       "continue", "global",
     "pass" ]
 
--- pStmt - a parser for statements 
+-- | pStmt - a parser for statements 
 --       - expression statements are still missing!!!
 pStmt :: Parser SStmt
 pStmt = try pStmtAssign <|> pStmtCall 
@@ -120,9 +129,3 @@ parseProg = do
   sc                    -- Skip whitespaces and comments at the beginning!
   stmts <- some pStmt 
   return $ SProg stmts 
-
-parseLpy :: FilePath -> String -> Either String SProg 
-parseLpy name input = 
-  case runParser parseProg name input of 
-    Left bundle -> Left $ show $ errorBundlePretty bundle
-    Right p -> Right p

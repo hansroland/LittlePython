@@ -1,6 +1,3 @@
--- Patch instructions. Remove illegal instructions
---    Avoid 2 memory locations in one instruction
---    Avoid immediate numbers bigger the  2^31 or smaller than -(2^31) in one instruction
 
 module Compiler.Phases.PatchInstr where 
 
@@ -9,6 +6,9 @@ import Compiler.Syntax
 patchInstr :: ProgAsmI -> ProgAsmI 
 patchInstr (ProgAsmI frameSize instrs ) = ProgAsmI frameSize $ concat $ patchInstrInstr <$> instrs 
 
+-- | Patch instructions. Remove illegal instructions
+--    Avoid 2 memory locations in one instruction
+--    Avoid immediate numbers bigger the  2^31 or smaller than -(2^31) in one instruction
 patchInstrInstr :: InstrInt -> [InstrInt] 
 -- Avoid 2 memory locations in one instruction
 patchInstrInstr (Instr2 opc (IMem os rs) (IMem od dr)) = 

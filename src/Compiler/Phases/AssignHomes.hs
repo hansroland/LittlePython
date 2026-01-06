@@ -9,8 +9,12 @@ import Data.Map.Strict(Map)
 emptydict :: Map String AsmIOp
 emptydict = Map.empty
 
+-- | A state monad with a map to store a variable -> address dictionary
 type AssignMonad a = State (Map String AsmIOp) a
 
+-- | Replace variables with addresses on the stack
+--     ProgAsmV : Assembler with variables
+--     ProgAsmI . Assembler without variables
 assignHomes :: ProgAsmV -> ProgAsmI 
 assignHomes (ProgAsmV _ vstmts) =
    let 
@@ -18,6 +22,7 @@ assignHomes (ProgAsmV _ vstmts) =
        frameSize = Map.size vardict
    in ProgAsmI frameSize $ astmts 
 
+-- Assign Homes for Instructions
 asHInstr :: InstrVar -> AssignMonad InstrInt 
 asHInstr (Instr2 opc op1 op2) = Instr2 opc <$> (asHOp op1) <*> (asHOp op2)
 asHInstr (Instr1 opc op1)     = Instr1 opc <$> asHOp op1
@@ -25,7 +30,7 @@ asHInstr (Instr0 opc)         = pure $ Instr0 opc
 asHInstr (InstrGlob lbl)      = pure $ InstrGlob lbl
 asHInstr (InstrLabl lbl)      = pure $ InstrLabl lbl
 
-
+-- Assign Homes for Operands
 asHOp  :: AsmVOp -> AssignMonad AsmIOp
 asHOp (VReg r)   = pure $ IReg r 
 asHOp (VMem n r) = pure $ IMem n r

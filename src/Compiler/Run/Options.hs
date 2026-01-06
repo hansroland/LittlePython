@@ -3,22 +3,25 @@ module Compiler.Run.Options (Settings(..), getOptions,
 
 import SimpleGetOpt 
 
+-- | Compiler Settings from the argv vector.
 data Settings = Settings
-  { printVersion :: Bool
-  , printInp     :: Bool
-  , printAst     :: Bool
-  , printRco     :: Bool 
-  , printSi      :: Bool
-  , printAh      :: Bool
-  , printPatch   :: Bool
-  , printEpilog  :: Bool
-  , file         :: String
-  , outdir       :: String }  
+  { printVersion :: Bool      -- ^ Print the version (=compilation date) of the compiler
+  , printInp     :: Bool      -- ^ Print the contents of the input file
+  , printAst     :: Bool      -- ^ Print the Abstract Syntax Tree (AST)
+  , printRco     :: Bool      -- ^ Print the outout of the remove complex operands phase
+  , printSi      :: Bool      -- ^ Print the assembler code after Select Instructions phase
+  , printAh      :: Bool      -- ^ Print the assembler code after Assign Homes phase
+  , printPatch   :: Bool      -- ^ Print the assembler code after the Patch Instructions phase 
+  , printEpilog  :: Bool      -- ^ Print the assembler code after adding prolog and epilog
+  , srcFile      :: String    -- ^ The input source file
+  , outdir       :: String }  -- ^ The directory for the output
   deriving (Show)
 
+-- | Parse the options string 
 getOptions :: IO Settings 
 getOptions =  getOpts defaultSettings options
 
+-- | The default settings
 defaultSettings :: Settings
 defaultSettings = Settings
   { printVersion = False
@@ -30,12 +33,14 @@ defaultSettings = Settings
   , printPatch = False
   , printEpilog = False
   , outdir = "./bin"
-  , file     = ""
+  , srcFile     = ""
   }
 
+-- Compiler settings for the test runner
 testSettings :: FilePath -> Settings
-testSettings path =  defaultSettings{file = path } 
+testSettings path =  defaultSettings{srcFile = path } 
 
+-- |Definition of the available options
 options :: OptSpec Settings
 options = optSpec
   { progDescription = [ "A toy compiler for the LittlePython language." ]
@@ -81,9 +86,9 @@ options = optSpec
               True  -> Left "outdir is empty"
       ]
   , progParamDocs =
-      [ ("FILE",   "The file that needs processing.") ]
+      [ ("FILE",   "The file source that needs processing.") ]
 
-  , progParams = \p s -> Right s { file = p }
+  , progParams = \p s -> Right s { srcFile = p }
 
   , progArgOrder = Permute
   }
