@@ -33,7 +33,6 @@ asHInstr (InstrLabl lbl)      = pure $ InstrLabl lbl
 -- Assign Homes for Operands
 asHOp  :: AsmVOp -> AssignMonad AsmIOp
 asHOp (VReg r)   = pure $ IReg r 
-asHOp (VMem n r) = pure $ IMem n r
 asHOp (VImm n)   = pure $ IImm n
 asHOp (VVar vnam) = do 
     mbvdict <- get
