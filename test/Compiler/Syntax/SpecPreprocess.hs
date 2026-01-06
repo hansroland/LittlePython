@@ -10,6 +10,7 @@ import System.Directory(copyFile)
 -- Copy the lpy compiler to the bin directory of the project.
 copyCompiler :: IO ()
 copyCompiler = do
+    -- Get the path where cabal hides the executable
     src' <- runProcess "cabal list-bin lpy" 
     let src = rtrimnl src'           -- Remove trailing newlines at end    
     let fn = takeFileName src

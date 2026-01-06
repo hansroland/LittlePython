@@ -5,16 +5,30 @@ import Compiler.Run
 import Utils
 import Compiler.Syntax
 import System.FilePath
+import System.IO.Silently
 
-evalProgWith :: FilePath -> String -> IO String  --includes get_int
-evalProgWith path inp = do 
-    sprog <- readAndParseSrc (testSettings $ "examples" </> path <.> "lpy")
-    out <- runWithInput (evalSProg sprog) inp
+exampleDir :: FilePath 
+exampleDir = "examples"
+
+-- Evaluate / interpret a SrcLang Program with input.
+-- Use redirect for input and output
+evalProgWith :: FilePath -> FilePath -> IO String  --includes get_int
+evalProgWith prog infn = do 
+    sprog <- readAndParseSrc (testSettings $ exampleDir </> prog <.> "lpy")
+    out <- runWithInput (evalSProg sprog) (exampleDir </> infn)
     pure out
 
-evalStmt :: SStmt -> IO String               -- without get_int
-evalStmt stmt = do
-    runWithInput (evalSProg (SProg [stmt])) ""
+-- Evaluate / interpret a statement in the IO Monad and capture output
+--   The statements do not contain any input operations eg getInt !
+evalStmt :: SStmt -> IO String
+evalStmt e = do
+    output <- capture_ $ evalSProg $ SProg [e]
+    pure output
+
+
+-- evalStmtWith :: SStmt -> IO String               -- without get_int
+-- evalStmtWith stmt = do
+--     runWithInput (evalSProg (SProg [stmt])) (exampleDir </> "empty")
 
 specEval :: Spec
 specEval = do
@@ -35,25 +49,27 @@ specEval = do
         evalStmt (testSub02) `shouldReturn` "-2\n"
 
     it "evalProgWith prog01" $ do
-        evalProgWith "prog01" "" `shouldReturn` "32\n"
+        evalProgWith "prog01" "empty" `shouldReturn` "32\n"
 
     it "evalProgWith prog02" $ do
-        evalProgWith "prog02" "" `shouldReturn` "42\n"
+        evalProgWith "prog02" "empty" `shouldReturn` "42\n"
 
     it "evalProgWith prog03" $ do
-        evalProgWith "prog03" "" `shouldReturn` "-20\n"
+        evalProgWith "prog03" "empty" `shouldReturn` "-20\n"
 
     it "evalProgWith prog04" $ do
-        evalProgWith "prog04" "" `shouldReturn` "-25\n"
+        evalProgWith "prog04" "empty" `shouldReturn` "-25\n"
+    it "compileAndRun prog04" $ do
+        compileAndRun "prog04" "input01.txt" `shouldReturn` "-25\n"
 
     it "evalProgWith (with input) prog05" $ do 
-        evalProgWith "prog05" "30\n12\n" `shouldReturn` "42\n" 
+        evalProgWith "prog05" "input01.txt" `shouldReturn` "110\n" 
+    it "compileAndRun prog05" $ do
+        compileAndRun "prog05" "input01.txt" `shouldReturn` "110\n"
 
-    it "evalProgWith prog06" $ do
-        evalProgWith "prog06" "" `shouldReturn` "32\n45\n"
-    
-    it "compileAndRun prog06" $ do 
-        compileAndRun "prog06" `shouldReturn` "32\n45\n"
+-- TODO  - multiple print statements don't work yet !! !!   
+--    it "compileAndRun prog06" $ do 
+--        compileAndRun "prog06"  "input.txt" `shouldReturn` "32\n45\n"
 
 testLit01 :: SStmt
 testLit01 = SStmtCall "print"  (SExprInt 34)

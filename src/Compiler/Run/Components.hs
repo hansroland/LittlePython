@@ -10,11 +10,8 @@ import Utils
 
 import System.Exit (exitFailure)
 import Control.Monad (when, unless)
-import Control.Exception
 import System.FilePath
 import System.Directory
-import System.IO
-import Control.DeepSeq
 
 -- Run whole compiler 
 run :: Settings -> IO () 
@@ -31,7 +28,7 @@ readAndParseSrc settings = do
     -- Check existence of input file
     _ <- checkSrcPath srcPath
     -- Read in source input
-    src <- readSrcFile srcPath 
+    src <- getFileContents srcPath 
     -- Print source input
     when settings.printInp $ 
         printPhaseRslt ("Input: " <> srcPath) src 
@@ -80,11 +77,6 @@ printPhaseRslt title part = do
   putStrLn title
   putStrLn ""
   putStrLn $ part <> "\n\n"
-
--- exception safe variant of readFile example: (from deepseq package)
-readSrcFile :: FilePath -> IO String
-readSrcFile srcPath = bracket (openFile srcPath ReadMode) hClose $ \h ->
-                       evaluate . force =<< hGetContents h
 
 checkSrcPath :: FilePath -> IO ()
 checkSrcPath srcPath = do 

@@ -6,6 +6,10 @@ module Compiler.Syntax.LangBase where
 class PP a where 
     pp :: a -> String
 
+instance (PP a) => PP (Either String a) where 
+    pp (Left e) = ("Error: " <> e)
+    pp (Right a) = pp a
+
 data BinOp = Add | Sub
     deriving (Show, Eq)
 
@@ -23,3 +27,4 @@ instance PP BinOp where
 
 instance PP UnaryOp where 
     pp USub = " -"
+

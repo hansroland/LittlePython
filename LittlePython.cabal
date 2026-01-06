@@ -91,4 +91,5 @@ test-suite LittlePython-test
         , compiler
         , filepath
         , directory
+        , silently
 

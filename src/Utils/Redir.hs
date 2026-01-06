@@ -2,10 +2,12 @@
 
 module Utils.Redir where
 
-import Control.Exception (bracket, finally)
-import GHC.IO.Handle (hDuplicate, hDuplicateTo)
-import System.IO (stdin, stdout, withFile, IOMode(ReadMode, WriteMode), hClose)
+import Control.Exception (bracket, finally, evaluate)
+import GHC.IO.Handle (hDuplicate, hDuplicateTo, hGetContents)
+import System.IO (stdin, stdout, openFile, withFile, IOMode(ReadMode, WriteMode), hClose)
 import System.IO.Temp (writeSystemTempFile, emptySystemTempFile)
+import Control.DeepSeq
+
 
 redirect :: IO r -> FilePath -> FilePath -> IO r
 redirect action inputFileName outputFileName = do
@@ -23,9 +25,15 @@ redirect action inputFileName outputFileName = do
              hDuplicateTo hOut stdout
              action)
 
-runWithInput :: IO a -> String -> IO String
-runWithInput action input = do
-  inputFileName <- writeSystemTempFile "input.txt" input
+runWithInput :: IO a -> FilePath -> IO String
+runWithInput action inputFileName = do
+--   inputFileName <- writeSystemTempFile "input.txt" input
   outputFileName <- emptySystemTempFile "output.txt"
   _ <- redirect action inputFileName outputFileName
   readFile outputFileName
+
+-- exception safe variant of readFile example: (from deepseq package)
+getFileContents :: FilePath -> IO String
+getFileContents srcPath = bracket (openFile srcPath ReadMode) hClose $ \h ->
+                       evaluate . force =<< hGetContents h
+

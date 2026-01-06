@@ -7,14 +7,6 @@ import System.Exit
 import System.FilePath
 import System.IO
 
--- Get the path where cabal hides the executable
--- testProcess :: IO FilePath 
--- testProcess = do 
---     (_, Just hout, _, _) <-  createProcess (proc "ls" []){ std_out = CreatePipe }
---    let params = CreateProcess {
---        std_out = CreatePipe
---    }
-
 -- Attention: For big outputs this may result in a deadlock
 --     https://passingcuriosity.com/2015/haskell-reading-process-safe-deadlock/
 
@@ -36,7 +28,16 @@ runProcess cmd = do
 rtrimnl :: String -> String
 rtrimnl = reverse . dropWhile (=='\n') . reverse 
 
-compileAndRun :: FilePath -> IO String 
-compileAndRun prog = do 
-    _ <- runProcess $ "bin" </> "lpy examples" </> prog <.> "lpy"
-    runProcess $ "bin" </> prog
+-- The program name is without directory and extension 
+-- The inputfile name is without directory
+compileAndRun :: FilePath -> FilePath -> IO String 
+compileAndRun prog inp = do 
+    -- compile the lpy program
+    let compilr = "bin" </> "lpy"
+    let src = "examples" </> prog <.> "lpy"
+    _ <- runProcess $ concat [compilr, " ", src]
+    -- Run the compiled program
+    let exe = "bin" </> prog
+    let inpath = "examples" </> inp
+    let runCmd = concat [exe, " <", inpath]
+    runProcess runCmd

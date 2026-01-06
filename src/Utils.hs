@@ -2,6 +2,7 @@ module Utils (
     rtrimnl
     , redirect
     , runWithInput
+    , getFileContents
     , runProcess
     , compileAndRun
     ) where

@@ -2,49 +2,53 @@ module Compiler.Syntax.SpecLangSrc (specLangSrc) where
 
 import Test.Hspec
 import Compiler.Syntax
+import Compiler.Phases
 
--- Tests for the pretty-print instances
+parsePrint :: String -> String
+parsePrint = pp . parseLpy ""
+
+-- Test Parser and PrettyPrint (PP)
 specLangSrc :: Spec
 specLangSrc = do
   describe "Tests for module LangSrc - pretty-print" $ do
     it "testLit01" $ do
-        (pp testLit01) `shouldBe` "print (34)"
+        (parsePrint testLit01) `shouldBe` "print (34)"       
     it "testNeg01" $ do
-        (pp testNeg01)`shouldBe` "print (-42)"
+        (parsePrint testNeg01)`shouldBe` "print (-42)"
     it "testNeg02" $ do
-        (pp testNeg02)`shouldBe` "print (8 + (-(1 + 2)))"
+        (parsePrint testNeg02)`shouldBe` "print (8 + (-(1 + 2)))"
     it "testNeg03" $ do
-        (pp testNeg03)`shouldBe` "print (-34)"
+        (parsePrint testNeg03)`shouldBe` "print (-34)"
     it "testAdd01" $ do
-        (pp testAdd01) `shouldBe` "print (8 + 34)"
+        (parsePrint testAdd01) `shouldBe` "print (8 + 34)"
     it "testAdd02" $ do
-        (pp testAdd02) `shouldBe` "print ((1 + 2) + (3 + 4))"
+        (parsePrint testAdd02) `shouldBe` "print ((1 + 2) + (3 + getInt()))"
     it "testSub01" $ do
-        (pp testSub01) `shouldBe` "print (8 - 34)"
+        (parsePrint testSub01) `shouldBe` "print (8 - 34)"
     it "testSub02" $ do
-        (pp testSub02) `shouldBe` "print ((1 - 2) - (3 - 4))"
-    
+        (parsePrint testSub02) `shouldBe`  "print ((1 - 2) - (3 - 4))"
+
 -- Testcases 
-testLit01 :: SStmt
-testLit01 = SStmtCall "print" (SExprInt 34)
+testLit01 :: String
+testLit01 = "print (34)"
 
-testNeg01 :: SStmt
-testNeg01 = SStmtCall "print" (SExprUOp USub(SExprInt  42))
+testNeg01 :: String
+testNeg01 = "print(-(42))"
 
-testNeg02 :: SStmt
-testNeg02 = SStmtCall "print" (SExprBinOp Add (SExprInt 8) (SExprUOp USub ((SExprBinOp Add  (SExprInt 1) (SExprInt 2)))))
+testNeg02 :: String
+testNeg02 = "print (8 + (-(1 + 2)))"
 
-testNeg03 :: SStmt 
-testNeg03 = SStmtCall "print" (SExprInt (-34))
+testNeg03 :: String 
+testNeg03 = "print (-34))"
 
-testAdd01 :: SStmt
-testAdd01 = SStmtCall "print" (SExprBinOp Add (SExprInt 8) (SExprInt 34))
+testAdd01 :: String
+testAdd01 = "print (8 + 34)"
 
-testAdd02 :: SStmt
-testAdd02 = SStmtCall "print" (SExprBinOp Add (SExprBinOp Add  (SExprInt 1) (SExprInt 2)) (SExprBinOp Add (SExprInt 3) (SExprInt 4)))
+testAdd02 :: String
+testAdd02 = "print ((1 + 2) + (3 + getInt()))"
 
-testSub01 :: SStmt
-testSub01 = SStmtCall "print" (SExprBinOp Sub (SExprInt 8) (SExprInt 34))
+testSub01 :: String
+testSub01 = "print (8 - 34)"
 
-testSub02 :: SStmt
-testSub02 = SStmtCall "print" (SExprBinOp Sub (SExprBinOp Sub  (SExprInt 1) (SExprInt 2)) (SExprBinOp Sub (SExprInt 3) (SExprInt 4)))
+testSub02 :: String
+testSub02 = "print ((1 - 2) - (3 - 4))"
