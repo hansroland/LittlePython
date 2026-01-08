@@ -67,6 +67,9 @@ specEval = do
     it "compileAndRun prog05" $ do
         compileAndRun "prog05" "input01.txt" `shouldReturn` "110\n"
 
+    it "compileAndRun book4_1" $ do
+        compileAndRun "book4_1" "input01.txt" `shouldReturn` "42\n"
+
     it "compileAndRun book4_2" $ do
         compileAndRun "book4_2" "input01.txt" `shouldReturn` "152\n"
 

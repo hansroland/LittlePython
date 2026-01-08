@@ -41,7 +41,7 @@ expr03 :: MExpr
 expr03 = MExprUOp USub atm02 
 
 expr04 :: MExpr
-expr04 = MExprFunc "tmp_0" "getInt"
+expr04 = MExprFunc "tmp_0" "getInt" []
 
 stmt01 :: MStmt 
 stmt01 = MStmtCall "printInt" atm01

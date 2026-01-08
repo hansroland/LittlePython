@@ -12,21 +12,23 @@ siStmt (MStmtExpr e ) = siStmtExpr e
 
 siStmtCall :: String -> MAtom -> [InstrVar]
 siStmtCall fun (MAtomVar v) =
-    [Instr2 Movq (VVar v) (VReg Rdi), Instr0 (Callq (fixFuncName fun))]
+    [Instr2 Movq (VVar v) (VReg Rdi), Instr0 (Callq (fixFuncName fun) 1 )]
 siStmtCall fun (MAtomInt n) = 
-    [Instr2 Movq (VImm n) (VReg Rdi), Instr0 (Callq (fixFuncName fun))]
+    [Instr2 Movq (VImm n) (VReg Rdi), Instr0 (Callq (fixFuncName fun) 1 )]
 
 siStmtAssign :: String -> MExpr -> [InstrVar]
 siStmtAssign v (MExprAtom a ) = [Instr2 Movq (fromAtom a) (VVar v)]
 siStmtAssign v (MExprBinOp op atom1 atom2) = 
     binop op (fromAtom atom1) (fromAtom atom2) (VVar v) 
 siStmtAssign v (MExprUOp uop a) = umop uop (fromAtom a) (VVar v)
-siStmtAssign v (MExprFunc _ fun) = 
-    [Instr0 (Callq (fixFuncName fun)), Instr2 Movq (VReg Rax)(VVar v) ]
+siStmtAssign v (MExprFunc _ fun atoms ) =   -- TODO Create instuctions for every parameter !!
+    [Instr0 (Callq (fixFuncName fun) (length atoms))     
+    , Instr2 Movq (VReg Rax)(VVar v) ]
 
 siStmtExpr :: MExpr -> [InstrVar]
-siStmtExpr (MExprFunc var fun) = 
-    [Instr0 (Callq (fixFuncName fun)), Instr2 Movq (VReg Rax) (VVar var)]
+siStmtExpr (MExprFunc var fun atoms ) =    -- TODO Add arguments
+    [Instr0 (Callq (fixFuncName fun) (length atoms))
+    , Instr2 Movq (VReg Rax) (VVar var)]
 siStmtExpr e = error $ "selectInstr.siStmtExpr NOT_IMPL e: " <> show e
 
 binop :: BinOp -> AsmVOp -> AsmVOp -> AsmVOp -> [InstrVar]

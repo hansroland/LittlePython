@@ -51,7 +51,7 @@ evalSExpr (SExprBinOp op exp1 exp2) = do
     pure (case op of
            Add -> e1 + e2
            Sub -> e1 - e2)
-evalSExpr (SExprFunc "getInt") = liftIO $ ((read <$> getLine) :: IO Int)
+evalSExpr (SExprFunc "getInt" _ ) = liftIO $ ((read <$> getLine) :: IO Int)  -- TODO add arguments
 evalSExpr (SExprVar var) = do                 -- Lookup int value of variable
         (EvalState vars) <- get
         let mb = Map.lookup var vars

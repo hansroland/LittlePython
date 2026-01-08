@@ -12,7 +12,7 @@ import Data.Char(toLower)
 -- Registers
 data Reg = Rsp | Rbp | Rax | Rbx | Rcx | Rdx | Rsi | Rdi |
         R8 | R9 | R10 | R11 | R12 | R13 | R14 | R15
-        deriving (Show, Eq)
+        deriving (Show, Eq, Ord)
 
 -- Operand type for X86Int
 data AsmIOp = IReg !Reg                       
@@ -36,8 +36,8 @@ data AsmOpc1 = Negq
             | Popq
            deriving (Show, Eq)
 
-data AsmOpc0 = Callq String 
-            | Retq
+data AsmOpc0 = Callq String Int  -- functionNm arity            
+             | Retq
            deriving (Show, Eq)
 
 -- Polymorphic instruction type
@@ -86,7 +86,7 @@ instance PP AsmOpc0 where
 instance (PP top) => PP (Instr top)  where
     pp (Instr2 op s d) = concat [leftm, pp op, "  ", pp s, ", ", pp d]
     pp (Instr1 op sd)  = concat [leftm, pp op, "  ",  pp sd]
-    pp (Instr0 (Callq s)) = concat [leftm, "callq ", s]
+    pp (Instr0 (Callq s _)) = concat [leftm, "callq ", s]
     pp (Instr0 op) = concat [leftm, pp op]
     pp (InstrGlob lbl) = concat [leftm, ".globl ", lbl]
     pp (InstrLabl lbl) = concat [lbl, ":"]
@@ -101,3 +101,9 @@ instance PP ProgAsmI where
 leftm :: String
 leftm = replicate 4 ' '
 
+-- | CalleR saved registers
+calleRSavedRegs :: [Reg]
+calleRSavedRegs = [Rax, Rcx, Rdx, Rdi, Rsi, R8, R9, R10, R11]
+
+calleESavedRegs :: [Reg]
+calleESavedRegs = [Rsp, Rbp, Rbx, R12, R13, R14, R15] 

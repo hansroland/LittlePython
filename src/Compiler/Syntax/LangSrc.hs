@@ -3,13 +3,14 @@
 module Compiler.Syntax.LangSrc where
 
 import Compiler.Syntax.LangBase
+import Data.List (intercalate)
 
 data SExpr =
     SExprInt !Int
     | SExprVar !String
     | SExprBinOp !BinOp !SExpr !SExpr
     | SExprUOp !UnaryOp !SExpr      
-    | SExprFunc !String  -- ![SExpr]  -- TODO: Support parameters
+    | SExprFunc !String ![SExpr]
   deriving (Eq, Show)
 
 data SStmt = SStmtCall !String !SExpr
@@ -40,8 +41,7 @@ instance PP SExpr where
     pp (SExprBinOp Add e1 e2) = concat [ "(", pp e1, " + ", pp e2, ")" ]
     pp (SExprBinOp Sub e1 e2) = concat [ "(", pp e1, " - ", pp e2, ")" ]
     pp (SExprUOp USub e)      = concat ["(-", pp e, ")"]
-    pp (SExprFunc fun {-args-})  = concat [fun, "(", {-prtargs,-} ")"]
-        -- where prtargs = concat $ pp <$> args
+    pp (SExprFunc fun args)   = concat [fun, "(", intercalate "," (pp <$> args), ")"]
 
 -- Helper Functions
 isSLeaf :: SExpr -> Bool 
@@ -49,4 +49,4 @@ isSLeaf (SExprInt _) = True
 isSLeaf (SExprVar _) = True
 isSLeaf (SExprBinOp _ _ _) = False
 isSLeaf (SExprUOp _ _) = False
-isSLeaf (SExprFunc _) = False 
+isSLeaf (SExprFunc _ _) = False 

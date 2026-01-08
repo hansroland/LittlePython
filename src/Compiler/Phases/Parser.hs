@@ -85,9 +85,9 @@ function :: Parser SExpr
 function = do 
     fun <- symbol "getInt"
     void $ char '(' >> sc
-    -- args <- aExpr `sepBy` (char ',' >> sc ) -- TODO Add arguments
+    args <- aExpr `sepBy` (char ',' >> sc ) -- TODO Add arguments
     void $ char ')' >> sc
-    pure $ SExprFunc fun
+    pure $ SExprFunc fun args
 
 -- rword - parse a reserved word (aka keywordS)       (NOT YET USED)
 -- rword :: String -> Parser ()

@@ -63,8 +63,8 @@ rcoExpr (SExprUOp op ex) a = do
     let newUnop = [MStmtAssign a (MExprUOp op atom)]
     pure $ stmtsUn <> newUnop
     
-rcoExpr (SExprFunc fun {-es-}) a = do                   -- TODO add funtion arguments
-    pure $ [MStmtExpr (MExprFunc a fun)]
+rcoExpr (SExprFunc fun _ ) a = do                   -- TODO add function arguments
+    pure $ [MStmtExpr (MExprFunc a fun [])]
 
     -- pairs <- mapM rcoExprChild es                    -- :t pairs = [(MAtom, [MStmt])]
     -- let atoms = fst <$> pairs  
