@@ -16,7 +16,7 @@ specLangSrc = do
     it "testNeg01" $ do
         (parsePrint testNeg01)`shouldBe` "print (-42)"
     it "testNeg02" $ do
-        (parsePrint testNeg02)`shouldBe` "print (8 + (-(1 + 2)))"
+        (parsePrint testNeg02)`shouldBe` "print (8 + -(1 + 2))"
     it "testNeg03" $ do
         (parsePrint testNeg03)`shouldBe` "print (-34)"
     it "testAdd01" $ do
@@ -26,7 +26,7 @@ specLangSrc = do
     it "testSub01" $ do
         (parsePrint testSub01) `shouldBe` "print (8 - 34)"
     it "testSub02" $ do
-        (parsePrint testSub02) `shouldBe`  "print ((1 - 2) - (3 - 4))"
+        (parsePrint testSub02) `shouldBe`  "print ((1 - -2) - (-3 - 4))"
 
 -- Testcases 
 testLit01 :: String
@@ -51,4 +51,4 @@ testSub01 :: String
 testSub01 = "print (8 - 34)"
 
 testSub02 :: String
-testSub02 = "print ((1 - 2) - (3 - 4))"
+testSub02 = "print ((1 - -2) - (-3 - 4))"

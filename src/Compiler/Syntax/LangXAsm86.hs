@@ -86,7 +86,7 @@ instance PP AsmOpc0 where
 instance (PP top) => PP (Instr top)  where
     pp (Instr2 op s d) = concat [leftm, pp op, "  ", pp s, ", ", pp d]
     pp (Instr1 op sd)  = concat [leftm, pp op, "  ",  pp sd]
-    pp (Instr0 (Callq s _)) = concat [leftm, "callq ", s]
+    pp (Instr0 (Callq s ar)) = concat [leftm, "callq ", s, " # arity:", show ar]
     pp (Instr0 op) = concat [leftm, pp op]
     pp (InstrGlob lbl) = concat [leftm, ".globl ", lbl]
     pp (InstrLabl lbl) = concat [lbl, ":"]

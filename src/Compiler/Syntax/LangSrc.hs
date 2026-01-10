@@ -34,10 +34,8 @@ instance PP SStmt where
 -- Print top level nodes without parens 
 -- Print lower level nodes with conditional parens using ppc
 instance PP SExpr where
-    pp (SExprInt n)
-      | n >= 0    = show n
-      | otherwise = concat ["(", show n, ")"]
-    pp (SExprVar v)           = v 
+    pp (SExprInt n) = show n
+    pp (SExprVar v) = v 
     pp (SExprBinOp Add e1 e2) = concat [ ppc e1, " + ", ppc e2 ]
     pp (SExprBinOp Sub e1 e2) = concat [ ppc e1, " - ", ppc e2 ]
     pp (SExprUOp USub e)      = concat ["-", ppc e ]
@@ -47,13 +45,11 @@ instance PP SExpr where
 --    Print leaf nodes without parens
 --    Print complex nodes with parens 
 ppc :: SExpr -> String
-ppc (SExprInt n)
-    | n >= 0    = show n
-    | otherwise = concat ["(", show n, ")"]
-ppc (SExprVar v)           = v 
+ppc (SExprInt n) = show n
+ppc (SExprVar v) = v 
 ppc (SExprBinOp Add e1 e2) = concat [ "(", ppc e1, " + ", ppc e2, ")" ]
 ppc (SExprBinOp Sub e1 e2) = concat [ "(", ppc e1, " - ", ppc e2, ")" ]
-ppc (SExprUOp USub e)      = concat ["(-", ppc e, ")"]
+ppc (SExprUOp USub e)      = concat ["-", ppc e]
 ppc (SExprFunc fun args)   = concat [fun, pp args]
 
 -- Separate a list of SExpr's by commas

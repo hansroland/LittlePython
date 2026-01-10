@@ -1,0 +1,6 @@
+# The load module prog00 is not eligible to execute !!
+# Example with higher arity in getInt and print
+# Higher arity is not yet fully supported  
+#   and we don't have functions to run it!
+a = getInt(2,3,4)
+print (a,1)
