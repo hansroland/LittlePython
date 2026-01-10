@@ -13,7 +13,7 @@ data SExpr =
     | SExprFunc !String ![SExpr]
   deriving (Eq, Show)
 
-data SStmt = SStmtCall !String !SExpr
+data SStmt = SStmtCall !String ![SExpr]
           | SStmtAssign !String !SExpr
           | SStmtExpr  !SExpr         -- TODO: Support multiple parameters.
   deriving (Eq, Show)
@@ -27,21 +27,42 @@ instance PP SProg where
   pp (SProg stmts) = pp stmts
 
 instance PP SStmt where  
-    pp (SStmtCall fun (SExprInt n)) = concat [fun, " (", show n, ")"]
-    pp (SStmtCall fun (SExprVar v)) = concat [fun, " (", v, ")"]
-    pp (SStmtCall fun e) = concat [fun, " ", pp e]
+    pp (SStmtCall fun exs) = concat [fun, " ", pp exs]
     pp (SStmtAssign s e) = concat [s, " = ", pp e]
-    pp (SStmtExpr e) = pp e
+    pp (SStmtExpr e) = ppc e 
 
+-- Print top level nodes without parens 
+-- Print lower level nodes with conditional parens using ppc
 instance PP SExpr where
     pp (SExprInt n)
       | n >= 0    = show n
       | otherwise = concat ["(", show n, ")"]
     pp (SExprVar v)           = v 
-    pp (SExprBinOp Add e1 e2) = concat [ "(", pp e1, " + ", pp e2, ")" ]
-    pp (SExprBinOp Sub e1 e2) = concat [ "(", pp e1, " - ", pp e2, ")" ]
-    pp (SExprUOp USub e)      = concat ["(-", pp e, ")"]
-    pp (SExprFunc fun args)   = concat [fun, "(", intercalate "," (pp <$> args), ")"]
+    pp (SExprBinOp Add e1 e2) = concat [ ppc e1, " + ", ppc e2 ]
+    pp (SExprBinOp Sub e1 e2) = concat [ ppc e1, " - ", ppc e2 ]
+    pp (SExprUOp USub e)      = concat ["-", ppc e ]
+    pp (SExprFunc fun args)   = concat [fun, " ", pp args]
+
+-- | Pretty print conditional
+--    Print leaf nodes without parens
+--    Print complex nodes with parens 
+ppc :: SExpr -> String
+ppc (SExprInt n)
+    | n >= 0    = show n
+    | otherwise = concat ["(", show n, ")"]
+ppc (SExprVar v)           = v 
+ppc (SExprBinOp Add e1 e2) = concat [ "(", ppc e1, " + ", ppc e2, ")" ]
+ppc (SExprBinOp Sub e1 e2) = concat [ "(", ppc e1, " - ", ppc e2, ")" ]
+ppc (SExprUOp USub e)      = concat ["(-", ppc e, ")"]
+ppc (SExprFunc fun args)   = concat [fun, pp args]
+
+-- Separate a list of SExpr's by commas
+instance PP [SExpr] where 
+    pp exs = concat ["(", intercalate ", " (pp <$> exs), ")" ]
+
+-- Separate a list of SStm's by newlines
+instance PP [SStmt] where 
+    pp stmts = intercalate "\n" (pp <$> stmts)
 
 -- Helper Functions
 isSLeaf :: SExpr -> Bool 

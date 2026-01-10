@@ -20,17 +20,17 @@ rco (SProg lestmts) =
 
 -- Convert a single statement
 rcoStmt :: SStmt -> RcoMonad [MStmt]
-rcoStmt (SStmtCall fun e) = rcoStmtCall fun e 
-rcoStmt (SStmtExpr e)     = rcoStmtExpr e
-rcoStmt (SStmtAssign a e) = rcoStmtAssign a e 
+rcoStmt (SStmtCall fun exs) = rcoStmtCall fun exs 
+rcoStmt (SStmtExpr e)       = rcoStmtExpr e
+rcoStmt (SStmtAssign a e)   = rcoStmtAssign a e 
 
-rcoStmtCall :: String -> SExpr -> RcoMonad [MStmt]
-rcoStmtCall fun (SExprVar v) = pure $ [MStmtCall fun (MAtomVar v)]
-rcoStmtCall fun (SExprInt n) = pure $ [MStmtCall fun (MAtomInt n)]
-rcoStmtCall fun e = do 
-    newVar <- getAssignVar e
-    atms <- rcoExpr e newVar
-    pure $ concat [atms, [MStmtCall fun (MAtomVar newVar)]]
+rcoStmtCall :: String -> [SExpr] -> RcoMonad [MStmt]
+rcoStmtCall fun exs = do 
+    -- :t atomsStmtss = [(MAtom, [MStmt]]
+    atomsStmtss <- mapM rcoExprChild exs 
+    let atoms = fst <$> atomsStmtss  
+    let stmts = concatMap snd atomsStmtss
+    pure $ stmts <> [MStmtCall fun atoms]
 
 rcoStmtExpr :: SExpr -> RcoMonad [MStmt]
 rcoStmtExpr (SExprVar v) = pure $ [MStmtExpr (MExprAtom(MAtomVar v))]
@@ -63,16 +63,13 @@ rcoExpr (SExprUOp op ex) a = do
     let newUnop = [MStmtAssign a (MExprUOp op atom)]
     pure $ stmtsUn <> newUnop
     
-rcoExpr (SExprFunc fun _ ) a = do                   -- TODO add function arguments
-    pure $ [MStmtExpr (MExprFunc a fun [])]
+rcoExpr (SExprFunc fun exs ) a = do                   -- TODO add function arguments
+    pairs <- mapM rcoExprChild exs                    -- :t pairs = [(MAtom, [MStmt])]
+    let atoms = fst <$> pairs  
+    let stmts = concat $ snd <$> pairs 
+    pure $ stmts <> [MStmtExpr (MExprFunc a fun atoms)] 
 
-    -- pairs <- mapM rcoExprChild es                    -- :t pairs = [(MAtom, [MStmt])]
-    -- let atoms = fst <$> pairs  
-    -- let stmts = concat $ snd <$> pairs           
-    -- let newCall = [MStmtExpr (MExprFunc fun atoms)]
-    -- pure $ stmts <> newCall 
-
--- convert a child of an expression, eg: rhs, lhs, unop-argument
+-- Convert a child of an expression, eg: rhs, lhs, unop-argument
 -- Returns the atom of the top level of the expression
 --   and a list of statements of all the child statements
 rcoExprChild :: SExpr -> RcoMonad (MAtom, [MStmt])

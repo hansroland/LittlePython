@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-x-partial -Wno-unrecognised-warning-flags #-}
+
 -- Evaluator (aka Language Interpreter) for the first language defined in LangSrc (aka LangInt).
 --
 module Compiler.Syntax.EvalLangSrc (evalSProg, evalSStmt) where
@@ -22,9 +24,10 @@ evalSProg (SProg stmts) = do
     pure ()
 
 evalSStmt :: SStmt -> EvalMonad ()
-evalSStmt (SStmtCall fun e) = do
+evalSStmt (SStmtCall fun exs) = do
     case fun of 
       "print" -> do
+        let e = head exs           -- TODO clean up arity
         n <- evalSExpr e
         liftIO $ putStrLn $ show n
       _ -> error ("EvalLangSrc.hs Function not implemented: " <> fun)

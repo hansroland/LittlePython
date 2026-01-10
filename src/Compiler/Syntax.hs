@@ -28,6 +28,7 @@ module Compiler.Syntax (
    , InstrVar
    , ProgAsmV(..)
    , ProgAsmI(..)
+   , argumentPassingRegs
    ) where
 
 import Compiler.Syntax.LangBase 

@@ -7,7 +7,7 @@ module Compiler.Syntax.LangXAsm86 where
 -- This would give a lot of nearly identical code.
 import Compiler.Syntax.LangBase
 import Data.Char(toLower)
-
+import Data.List (intercalate)
 
 -- Registers
 data Reg = Rsp | Rbp | Rax | Rbx | Rcx | Rdx | Rsi | Rdi |
@@ -95,7 +95,11 @@ instance PP ProgAsmV where
     pp (ProgAsmV _ ii) = pp ii
 
 instance PP ProgAsmI where 
-    pp (ProgAsmI _ ii) = concat $ [pp ii, "\n"]
+    pp (ProgAsmI _ ii) = concat $ [pp ii, "\n"]     -- final newline !!
+
+-- Print lists of instructions separated wit newline
+instance (PP top) => PP [Instr top] where 
+    pp instrs = intercalate "\n" (pp <$> instrs)
 
 -- Helper functions
 leftm :: String
@@ -107,3 +111,7 @@ calleRSavedRegs = [Rax, Rcx, Rdx, Rdi, Rsi, R8, R9, R10, R11]
 
 calleESavedRegs :: [Reg]
 calleESavedRegs = [Rsp, Rbp, Rbx, R12, R13, R14, R15] 
+
+argumentPassingRegs :: [AsmVOp]
+argumentPassingRegs = VReg <$> [Rdi, Rsi, Rdx, Rcx, R8, R9]
+

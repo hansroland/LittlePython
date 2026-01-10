@@ -25,7 +25,7 @@ optConstSProg :: SProg -> SProg
 optConstSProg (SProg body) = SProg (optConstStmt <$> body)
 
 optConstStmt :: SStmt -> SStmt
-optConstStmt (SStmtCall fun ex) = SStmtCall fun $ optConstSExpr ex
+optConstStmt (SStmtCall fun exs) = SStmtCall fun $ optConstSExpr <$> exs
 optConstStmt (SStmtAssign v ex) = SStmtAssign v $ optConstSExpr ex
 optConstStmt (SStmtExpr ex)  = SStmtExpr $ optConstSExpr ex
 
@@ -54,7 +54,7 @@ optUSubProg :: SProg -> SProg
 optUSubProg (SProg body) = SProg (optUSubStmt <$> body)
 
 optUSubStmt :: SStmt -> SStmt
-optUSubStmt (SStmtCall fun ex) = SStmtCall fun $ optUSubExpr ex
+optUSubStmt (SStmtCall fun exs) = SStmtCall fun $ optUSubExpr <$> exs
 optUSubStmt (SStmtAssign s ex) = SStmtAssign s $ optUSubExpr ex
 optUSubStmt (SStmtExpr ex)  = SStmtExpr $ optUSubExpr ex
 

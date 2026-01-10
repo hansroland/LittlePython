@@ -6,15 +6,23 @@ selectInstr :: MProg -> ProgAsmV
 selectInstr (MProg stmts) = ProgAsmV 0 $ concat $ siStmt <$> stmts
 
 siStmt :: MStmt -> [InstrVar]
-siStmt (MStmtCall fun atom )  = siStmtCall fun atom 
+siStmt (MStmtCall fun atoms )  = siStmtCall fun atoms 
 siStmt (MStmtAssign fun expr) = siStmtAssign fun expr
 siStmt (MStmtExpr e ) = siStmtExpr e
 
-siStmtCall :: String -> MAtom -> [InstrVar]
-siStmtCall fun (MAtomVar v) =
-    [Instr2 Movq (VVar v) (VReg Rdi), Instr0 (Callq (fixFuncName fun) 1 )]
-siStmtCall fun (MAtomInt n) = 
-    [Instr2 Movq (VImm n) (VReg Rdi), Instr0 (Callq (fixFuncName fun) 1 )]
+-- TODO: More than 6 call arguments
+siStmtCall :: String -> [MAtom] -> [InstrVar]
+siStmtCall fun atoms = parmInstr <> [Instr0 (Callq (fixFuncName fun) arity )]
+  where 
+    -- pair the atom with the argument corresponding argument reg
+    pairs :: [(MAtom, AsmVOp)]
+    pairs = zip atoms argumentPassingRegs
+    parmInstr :: [InstrVar]
+    parmInstr = siStmtCallAtom <$> pairs
+    arity = length atoms 
+    siStmtCallAtom :: (MAtom, AsmVOp) -> InstrVar
+    siStmtCallAtom (MAtomVar v, vreg) = Instr2 Movq (VVar v) vreg
+    siStmtCallAtom (MAtomInt n, vreg) = Instr2 Movq (VImm n) vreg
 
 siStmtAssign :: String -> MExpr -> [InstrVar]
 siStmtAssign v (MExprAtom a ) = [Instr2 Movq (fromAtom a) (VVar v)]

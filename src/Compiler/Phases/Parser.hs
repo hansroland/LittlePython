@@ -49,6 +49,11 @@ integer = lexeme L.decimal
 aExpr :: Parser SExpr
 aExpr = makeExprParser aTerm table <?> "expression"
 
+-- Expression list parser 
+-- Parse a comma separated list of SExpr's enclosed in parens
+pExprList :: Parser [SExpr]
+pExprList = parens $ aExpr `sepBy` (char ',' >> sc )
+
 -- aTerm - Parse an arithmetic term
 aTerm :: Parser SExpr
 aTerm = try function 
@@ -84,9 +89,7 @@ identifier = (lexeme . try) (p >>= check)
 function :: Parser SExpr  
 function = do 
     fun <- symbol "getInt"
-    void $ char '(' >> sc
-    args <- aExpr `sepBy` (char ',' >> sc ) -- TODO Add arguments
-    void $ char ')' >> sc
+    args <- pExprList
     pure $ SExprFunc fun args
 
 -- rword - parse a reserved word (aka keywordS)       (NOT YET USED)
@@ -120,8 +123,8 @@ pStmt = try pStmtAssign <|> pStmtCall
     pStmtCall :: Parser SStmt 
     pStmtCall = do
         fun <- symbol "print"
-        ex  <- parens aExpr 
-        pure $ SStmtCall fun ex 
+        exs  <- pExprList 
+        pure $ SStmtCall fun exs 
 
 -- A parser for the whole program
 parseProg :: Parser SProg 

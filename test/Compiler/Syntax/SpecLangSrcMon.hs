@@ -44,7 +44,7 @@ expr04 :: MExpr
 expr04 = MExprFunc "tmp_0" "getInt" []
 
 stmt01 :: MStmt 
-stmt01 = MStmtCall "printInt" atm01
+stmt01 = MStmtCall "printInt" [atm01]
 
 stmt02 :: MStmt 
 stmt02 = MStmtAssign "myVar" expr02
