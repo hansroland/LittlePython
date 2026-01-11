@@ -55,11 +55,11 @@ type InstrInt = Instr AsmIOp
 -- Instructions for the X86Var language
 type InstrVar = Instr AsmVOp
 
--- A programs for the ProgAsmVar language
-data ProgAsmV = ProgAsmV Int [InstrVar]   
+-- A programs for the ProgAsmVar language is just a list of instructions
+type ProgAsmV = [InstrVar]   
 
 -- A programs for the ProgAsmInt language
-data ProgAsmI = ProgAsmI Int [InstrInt]         -- In for frame size in bytes
+data ProgAsmI = ProgAsmI Int [InstrInt]         -- Int for frame size in bytes
 
 -- Instances
 instance PP Reg where 
@@ -92,9 +92,6 @@ instance (PP top) => PP (Instr top)  where
     pp (InstrGlob lbl) = concat [leftm, ".globl ", lbl]
     pp (InstrLabl lbl) = concat [lbl, ":"]
     
-instance PP ProgAsmV where 
-    pp (ProgAsmV _ ii) = pp ii
-
 instance PP ProgAsmI where 
     pp (ProgAsmI _ ii) = concat $ [pp ii, "\n"]     -- final newline !!
 
@@ -121,6 +118,3 @@ calleESavedRegs = [Rsp, Rbp, Rbx, R12, R13, R14, R15]
 
 argumentPassingRegs :: [AsmVOp]
 argumentPassingRegs = VReg <$> [Rdi, Rsi, Rdx, Rcx, R8, R9]
-
-
-

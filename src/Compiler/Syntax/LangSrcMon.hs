@@ -4,9 +4,8 @@ module Compiler.Syntax.LangSrcMon  where
 import Compiler.Syntax.LangBase
 import Data.List (intercalate)
 
--- A program of our object language
-data MProg = MProg ![MStmt]
-  deriving (Eq, Show)
+-- A program of our object language is just a list of statements
+type MProg = [MStmt]
 
 data MStmt = MStmtCall !String ![MAtom]    -- print_int !!
           | MStmtAssign !String !MExpr
@@ -24,9 +23,6 @@ data MAtom =
     MAtomInt !Int
     | MAtomVar !String
   deriving (Show, Eq)
-
-instance PP MProg  where 
-  pp (MProg stmts) = pp stmts
 
 instance PP MStmt where 
   pp (MStmtCall fun exs) = concat [fun, " ", pp exs]

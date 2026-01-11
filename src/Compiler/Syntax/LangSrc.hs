@@ -18,13 +18,8 @@ data SStmt = SStmtCall !String ![SExpr]
           | SStmtExpr  !SExpr         -- TODO: Support multiple parameters.
   deriving (Eq, Show)
 
-data SProg = SProg ![SStmt]
-  deriving (Eq, Show)
-
--- Define a pretty printer. It produces an easy and quick string of a sentence.
---    (This is more ore less the input to the compiler...)
-instance PP SProg where
-  pp (SProg stmts) = pp stmts
+-- A program is just a list of statements
+type SProg = [SStmt]
 
 instance PP SStmt where  
     pp (SStmtCall fun exs) = concat [fun, " ", pp exs]

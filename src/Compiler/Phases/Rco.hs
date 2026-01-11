@@ -13,10 +13,8 @@ import Control.Monad.State.Strict
 type RcoMonad a = State Int a
 
 -- | Convert an expression tree to a list of atomic statements
-rco :: SProg-> MProg
-rco (SProg lestmts) =
-   let atms = evalState (sequence (rcoStmt <$> lestmts)) 0
-   in MProg $ concat atms
+rco :: SProg -> MProg
+rco stmts = concat $  evalState (sequence (rcoStmt <$> stmts)) 0
 
 -- Convert a single statement
 rcoStmt :: SStmt -> RcoMonad [MStmt]

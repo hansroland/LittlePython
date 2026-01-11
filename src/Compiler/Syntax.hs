@@ -4,12 +4,12 @@ module Compiler.Syntax (
    , BinOp(..) 
    , UnaryOp(..)
    --from LangSrc.hs
-   , SProg(..)
+   , SProg
    , SStmt(..)
    , SExpr(..)
    , isSLeaf
    -- from LangSrcMon.hs
-   , MProg(..)
+   , MProg
    , MStmt(..)
    , MExpr(..)
    , MAtom(..)
@@ -26,7 +26,7 @@ module Compiler.Syntax (
    , Instr(..)
    , InstrInt
    , InstrVar
-   , ProgAsmV(..)
+   , ProgAsmV
    , ProgAsmI(..)
    , isImm
    , argumentPassingRegs

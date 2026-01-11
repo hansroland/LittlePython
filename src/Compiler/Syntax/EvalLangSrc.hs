@@ -19,7 +19,7 @@ initialState :: EvalState
 initialState = EvalState Map.empty
 
 evalSProg :: SProg -> IO ()
-evalSProg (SProg stmts) = do
+evalSProg stmts = do
     _ <- execStateT (sequence_ (map evalSStmt stmts)) initialState
     pure ()
 

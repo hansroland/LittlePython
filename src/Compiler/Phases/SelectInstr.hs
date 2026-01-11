@@ -3,7 +3,7 @@ module Compiler.Phases.SelectInstr where
 import Compiler.Syntax
 
 selectInstr :: MProg -> ProgAsmV
-selectInstr (MProg stmts) = ProgAsmV 0 $ concat $ siStmt <$> stmts
+selectInstr stmts = concat $ siStmt <$> stmts
 
 siStmt :: MStmt -> [InstrVar]
 siStmt (MStmtCall fun atoms )  = siStmtCall fun atoms 

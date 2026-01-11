@@ -16,7 +16,7 @@ type AssignMonad a = State (Map String AsmIOp) a
 --     ProgAsmV : Assembler with variables
 --     ProgAsmI . Assembler without variables
 assignHomes :: ProgAsmV -> ProgAsmI 
-assignHomes (ProgAsmV _ vstmts) =
+assignHomes vstmts =
    let 
        (astmts, vardict) = runState (sequence (asHInstr <$> vstmts)) emptydict
        frameSize = Map.size vardict

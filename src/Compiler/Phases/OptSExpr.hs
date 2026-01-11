@@ -22,7 +22,7 @@ optimizeSExpr :: SExpr -> SExpr
 optimizeSExpr = optUSubExpr . optConstSExpr
 
 optConstSProg :: SProg -> SProg
-optConstSProg (SProg body) = SProg (optConstStmt <$> body)
+optConstSProg stmts = optConstStmt <$> stmts
 
 optConstStmt :: SStmt -> SStmt
 optConstStmt (SStmtCall fun exs) = SStmtCall fun $ optConstSExpr <$> exs
@@ -51,7 +51,7 @@ optConstSub e1 e2 = SExprBinOp Sub e1 e2
 --      Replace  ExprUOp USub (ExprBinOp x y) => 
 --                      ExprBinOp (ExprUOp USub x) (ExprUOp USub y)
 optUSubProg :: SProg -> SProg
-optUSubProg (SProg body) = SProg (optUSubStmt <$> body)
+optUSubProg stmts = optUSubStmt <$> stmts
 
 optUSubStmt :: SStmt -> SStmt
 optUSubStmt (SStmtCall fun exs) = SStmtCall fun $ optUSubExpr <$> exs
