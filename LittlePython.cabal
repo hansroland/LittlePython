@@ -31,6 +31,7 @@ library compiler
                       , Compiler.Phases.OptSExpr
                       , Compiler.Phases.Rco
                       , Compiler.Phases.SelectInstr
+                      , Compiler.Phases.AssignRegisters
                       , Compiler.Phases.AssignHomes
                       , Compiler.Phases.PatchInstr
                       , Compiler.Phases.ProEpilog
@@ -80,6 +81,7 @@ test-suite LittlePython-test
                     , Compiler.Phases.SpecRco
                     , Compiler.Phases.SpecSelectInstr
                     , Compiler.Phases.SpecAssignHomes
+--                     , Compiler.Phases.SpecAssignRegisters
                     , Compiler.Phases.SpecPatchInstr
     -- other-extensions:
     type:             exitcode-stdio-1.0
@@ -91,5 +93,6 @@ test-suite LittlePython-test
         , compiler
         , filepath
         , directory
+--        , containers
         , silently
 

@@ -1,7 +1,8 @@
 module Compiler.Syntax.LangXAsm86 where 
 
 -- This module describes the used portion of the X86-64 assembler. 
--- Asm86Var and Asm86Int are in the same module, but different types.
+-- Asm86Var and Asm86Int are in the same module, but are different types.
+-- We use the syntax of the x86 AT&T syntax assembly
 
 -- I don't have a separate type for source and destination operands
 -- This would give a lot of nearly identical code.
@@ -24,7 +25,7 @@ data AsmIOp = IReg !Reg
 data AsmVOp = VReg !Reg
            | VVar !String
            | VImm !Int
-           deriving (Show, Eq)
+           deriving (Show, Eq, Ord)
 
 data AsmOpc2 = Addq 
             | Subq
@@ -55,10 +56,10 @@ type InstrInt = Instr AsmIOp
 type InstrVar = Instr AsmVOp
 
 -- A programs for the ProgAsmVar language
-data ProgAsmV = ProgAsmV Int [InstrVar]   -- In for frame size in bytes
+data ProgAsmV = ProgAsmV Int [InstrVar]   
 
 -- A programs for the ProgAsmInt language
-data ProgAsmI = ProgAsmI Int [InstrInt]
+data ProgAsmI = ProgAsmI Int [InstrInt]         -- In for frame size in bytes
 
 -- Instances
 instance PP Reg where 
@@ -97,13 +98,19 @@ instance PP ProgAsmV where
 instance PP ProgAsmI where 
     pp (ProgAsmI _ ii) = concat $ [pp ii, "\n"]     -- final newline !!
 
--- Print lists of instructions separated wit newline
+-- Print lists of instructions separated with newline
 instance (PP top) => PP [Instr top] where 
     pp instrs = intercalate "\n" (pp <$> instrs)
 
 -- Helper functions
 leftm :: String
 leftm = replicate 4 ' '
+
+-- | Check, whether an operand is an immediate operand
+isImm :: AsmVOp -> Bool
+isImm  (VImm _) = True 
+isImm  _        = False
+
 
 -- | CalleR saved registers
 calleRSavedRegs :: [Reg]
@@ -114,4 +121,6 @@ calleESavedRegs = [Rsp, Rbp, Rbx, R12, R13, R14, R15]
 
 argumentPassingRegs :: [AsmVOp]
 argumentPassingRegs = VReg <$> [Rdi, Rsi, Rdx, Rcx, R8, R9]
+
+
 
