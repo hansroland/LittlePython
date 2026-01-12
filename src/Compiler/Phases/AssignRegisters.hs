@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-x-partial -Wno-unrecognised-warning-flags #-}
+
 module Compiler.Phases.AssignRegisters where 
 
 import Compiler.Syntax 
@@ -9,11 +11,12 @@ import qualified Data.Set as Set
 -- Discovers which variables are in use in different regions of a program. 
 -- A variable or register is live at a program point if its current value 
 -- is used at some later point in the program.
+-- `init` we are reversed but want the after set
 uncoverLive :: [InstrVar] -> [(InstrVar, Set AsmVOp)] 
-uncoverLive insts = zip insts $ scanr lives Set.empty $ reverse insts
+uncoverLive insts = zip insts $ reverse $ init $ scanl step Set.empty $ reverse insts 
   where
-    lives :: InstrVar -> Set AsmVOp -> Set AsmVOp
-    lives inst lafter = 
+    step :: Set AsmVOp -> InstrVar -> Set AsmVOp
+    step lafter inst = 
         --  L before (k) = (L after (k) − W(k)) ∪ R(k),
         (lafter `Set.difference` wOps inst) `Set.union` rOps inst
 
@@ -22,8 +25,10 @@ uncoverLive insts = zip insts $ scanr lives Set.empty $ reverse insts
 --   argument-passing registers in its read set R, 
 --   depending on the arity of the function being called.
 rOps :: InstrVar -> Set AsmVOp
-rOps (Instr2 _op s _) = if isImm s then Set.empty else Set.singleton s 
-rOps (Instr1 _op sd)  = Set.singleton sd
+-- Movq doesn't read the second operand
+rOps (Instr2 Movq s _) = if isImm s then Set.empty else Set.singleton s
+rOps (Instr2 _op s d)  = if isImm s then Set.singleton d else Set.fromList [s,d] 
+rOps (Instr1 _op sd)   = Set.singleton sd
 rOps (Instr0 (Callq _s ar)) = Set.fromList $ take ar argumentPassingRegs
 rOps (Instr0 _op) = Set.empty
 rOps (InstrGlob _lbl) = Set.empty

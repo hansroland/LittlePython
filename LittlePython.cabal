@@ -81,7 +81,7 @@ test-suite LittlePython-test
                     , Compiler.Phases.SpecRco
                     , Compiler.Phases.SpecSelectInstr
                     , Compiler.Phases.SpecAssignHomes
---                     , Compiler.Phases.SpecAssignRegisters
+                    , Compiler.Phases.SpecAssignRegs
                     , Compiler.Phases.SpecPatchInstr
     -- other-extensions:
     type:             exitcode-stdio-1.0
@@ -93,6 +93,6 @@ test-suite LittlePython-test
         , compiler
         , filepath
         , directory
---        , containers
+        , containers
         , silently
 

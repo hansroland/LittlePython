@@ -9,6 +9,8 @@ module Compiler.Syntax.LangXAsm86 where
 import Compiler.Syntax.LangBase
 import Data.Char(toLower)
 import Data.List (intercalate)
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 -- Registers
 data Reg = Rsp | Rbp | Rax | Rbx | Rcx | Rdx | Rsi | Rdi |
@@ -73,7 +75,16 @@ instance PP AsmIOp where
 instance PP AsmVOp where 
     pp (VReg r)   = pp r
     pp (VVar str) = str
-    pp (VImm n)   = '$' : show n
+    pp (VImm n)   = '$' : show n 
+
+instance PP [AsmVOp] where
+    pp oprs = intercalate " " $ pp <$> oprs
+ 
+instance PP (Set AsmVOp) where 
+    pp set = concat ["{", intercalate " " (pp <$> Set.elems set), "}"]
+
+instance PP [Set AsmVOp] where 
+    pp sets = intercalate "\n" (pp <$> sets)
 
 instance PP AsmOpc2 where 
     pp op = toLower <$> show op

@@ -22,7 +22,7 @@ evalProgWith prog infn = do
 --   The statements do not contain any input operations eg getInt !
 evalStmt :: SStmt -> IO String
 evalStmt e = do
-    output <- capture_ $ evalSProg $ SProg [e]
+    output <- capture_ $ evalSProg [e]
     pure output
 
 
