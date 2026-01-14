@@ -5,7 +5,7 @@ module Compiler.Phases (
     , rco
     , selectInstr
     , uncoverLive 
-    , createEdgePairs
+    , edgePairs
     , assignHomes
     , patchInstr
     , proEpilog

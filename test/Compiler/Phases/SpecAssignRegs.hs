@@ -5,30 +5,27 @@ module Compiler.Phases.SpecAssignRegs(specAssignRegs) where
 import Test.Hspec
 import Compiler.Syntax
 import Compiler.Phases 
-import Data.Set (Set)
 
 -- Function to test uncoverLive
-testul :: [InstrVar] -> IO String 
-testul sample = do 
-    let lives:: [Set AsmVOp] = snd <$> (uncoverLive sample)
-    pure $ pp lives
+testul :: [InstrVar] -> String 
+testul sample = pp $ snd <$> (uncoverLive sample)
 
-{-}
 -- Function to test createEdgePairs ::  (InstrVar, [AsmVOp]) -> [(AsmVOp, AsmVOp)] 
-testcp :: [InstrVar] ->IO String 
-testcp sample = do 
-  let pairs = createEdgePairs $ uncoverLive sample
-  pure $ pp pairs
--}
+-- Here we first run uncoverLive and then createEdgePairs. 
+--    If the tests with uncoverLives fail, then those with createEdgePairs will fail too!
+testcp :: [InstrVar] -> String 
+testcp sample = pp $ edgePairs sample
+
 specAssignRegs :: Spec
 specAssignRegs = do
   describe "Tests for module Compiler.Phases.AssignRegs" $ do
     it "testul book43" $ do  
-       (testul book43) `shouldReturn` "{a}\n{a}\n{c}\n{b c}\n{}" 
+       (testul book43) `shouldBe` "{a}\n{a}\n{c}\n{b c}\n{}" 
     it "testul book44" $ do  
-       (testul book44) `shouldReturn` "{v}\n{v w}\n{w x}\n{w x}\n{w x y}\n{w y z}\n{y z}\n{tmp0 z}\n{tmp0 z}\n{tmp0 tmp1}\n{tmp1}\n{%rdi}\n{}" 
---    it "testcp book44" $ do  
---       (testcp book44) `shouldReturn` "????" 
+       (testul book44) `shouldBe` "{v}\n{v w}\n{w x}\n{w x}\n{w x y}\n{w y z}\n{y z}\n{tmp0 z}\n{tmp0 z}\n{tmp0 tmp1}\n{tmp1}\n{%rdi}\n{}" 
+
+    it "testcp book44" $ do  
+       (testcp book44) `shouldBe` "[(w, v), (x, w), (y, w), (z, w), (z, y), (tmp0, z), (tmp1, tmp0)]" 
 
 -- Example from figure 4.3
 -- Note. We cannot send the example of the book through the

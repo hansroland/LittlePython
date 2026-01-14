@@ -77,6 +77,9 @@ instance PP AsmVOp where
     pp (VVar str) = str
     pp (VImm n)   = '$' : show n 
 
+instance PP [(AsmVOp, AsmVOp)] where 
+    pp lst = concat ["[", intercalate ", " (pp <$> lst), "]"]
+
 instance PP [AsmVOp] where
     pp oprs = intercalate " " $ pp <$> oprs
  

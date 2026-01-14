@@ -6,6 +6,7 @@ import Compiler.Syntax
 
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Data.List( nub )
 
 -- | uncoverLive: Performs liveness analysis.
 -- Discovers which variables are in use in different regions of a program. 
@@ -41,33 +42,21 @@ rOps (InstrLabl _lbl) = Set.empty
 wOps :: InstrVar -> Set AsmVOp
 wOps (Instr2 _ _ d) = Set.singleton d 
 wOps (Instr1 _ sd)  = Set.singleton sd
-wOps (Instr0 (Callq _s _ar)) = callqWriteSet
+wOps (Instr0 (Callq _s _ar)) = Set.fromList $ VReg <$> calleRSavedRegs
 wOps (Instr0 _) = Set.empty
 wOps (InstrGlob _) = Set.empty
 wOps (InstrLabl _) = Set.empty
 
--- writeSet with all caller saved sets
-callqWriteSet :: Set AsmVOp
-callqWriteSet = Set.fromList $ VReg <$> calleRSavedRegs
-
--- | Prepare the edges of the interference graph.
--- For each instruction, create an edge between the locations being written to 
---   and the live locations.
-createEdgePairs ::  (InstrVar, [AsmVOp]) -> [(AsmVOp, AsmVOp)]
--- If instruction I k is a move instruction of the form movq s, d, then for every
--- v ∈ L after (k), if v ̸ = d and v ̸ = s, add the edge (d, v).
-createEdgePairs ( (Instr2 Movq s d), vs) = [(d,v) | v <- vs, v /= d, v /= s, s /= d]
--- For any other instruction I k , for every d ∈ W(k) and every v ∈ L after (k), 
--- if v ̸ = d, add the edge (d, v).(where W(k) are the locations written to)
-createEdgePairs ( (Instr2 _ _ d), vs) = ep d vs
-createEdgePairs ( (Instr1 _ d), vs)   = ep d vs
--- For the callq instruction an edge is added between every live variable and
--- every caller-saved register
-createEdgePairs ( (Instr0 (Callq _ n)), vs) = [(d,v) | d <- take n argumentPassingRegs, v <- vs]
-createEdgePairs ( (Instr0 _          ),  _) = []
-createEdgePairs ( (InstrGlob _)       , _ ) = [] 
-createEdgePairs ( (InstrLabl _)       , _ ) = [] 
-
--- Helper Function for createEdgPairs
-ep :: AsmVOp -> [AsmVOp] -> [(AsmVOp, AsmVOp)] 
-ep d vs = [(d,v) | v <- vs, v /= d ]
+-- | Prepare the edges for the interference graph.
+-- For each instruction, create an edge between the locations being 
+-- written to and the live locations. (However, a location never 
+-- interferes with itself.)
+edgePairs :: [InstrVar] -> [(AsmVOp, AsmVOp)]
+edgePairs instrs = nub $ concat $ edgePairsByInstr <$> uncoverLive instrs
+  where
+    edgePairsByInstr :: (InstrVar, Set AsmVOp) -> [(AsmVOp, AsmVOp)]
+    edgePairsByInstr (instr@(Instr2 Movq s _), lafter) = 
+        [(d,v) | d <- Set.toList $ wOps instr, v <- Set.toList lafter, 
+                 d /= v, v /= s, s /= d ] 
+    edgePairsByInstr (instr, lafter) = 
+      [(d,v) | d <- Set.toList $ wOps instr, v <- Set.toList lafter,  d /= v] 
