@@ -28,7 +28,8 @@ module Compiler.Syntax (
    , InstrVar
    , ProgAsmV
    , ProgAsmI(..)
-   , isImm
+   , isVImm
+   , isVVar
    , argumentPassingRegs
    , calleRSavedRegs 
    ) where

@@ -56,11 +56,13 @@ specEval = do
 
     it "evalProgWith prog03" $ do
         evalProgWith "prog03" "empty" `shouldReturn` "-20\n"
+    it "compileAndRun prog03" $ do
+        compileAndRun "prog03" "empty" `shouldReturn` "-20\n"
 
     it "evalProgWith prog04" $ do
         evalProgWith "prog04" "empty" `shouldReturn` "-25\n"
     it "compileAndRun prog04" $ do
-        compileAndRun "prog04" "input01.txt" `shouldReturn` "-25\n"
+        compileAndRun "prog04" "empty" `shouldReturn` "-25\n"
 
     it "evalProgWith (with input) prog05" $ do 
         evalProgWith "prog05" "input01.txt" `shouldReturn` "110\n" 

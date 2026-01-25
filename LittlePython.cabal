@@ -46,6 +46,7 @@ library compiler
                       , mtl
                       , megaparsec
                       , parser-combinators
+                      , algebraic-graphs
                       , filepath
                       , directory
                       , temporary
@@ -95,4 +96,3 @@ test-suite LittlePython-test
         , directory
         , containers
         , silently
-

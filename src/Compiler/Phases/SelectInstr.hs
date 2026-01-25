@@ -43,9 +43,9 @@ binop :: BinOp -> AsmVOp -> AsmVOp -> AsmVOp -> [InstrVar]
 binop Add op1 op2 res 
     | op2 == res = [Instr2 Addq op1 res]
     | op1 == res = [Instr2 Addq op2 res]
-    | otherwise =  [Instr2 Movq op1 (VReg Rax), Instr2 Addq op2 (VReg Rax), Instr2 Movq (VReg Rax) res]      -- var = op1 + var
+    | otherwise =  [Instr2 Movq op1 res, Instr2 Addq op2 res]      -- res = op1 + op2
 binop Sub op1 op2 res 
-    | otherwise =  [Instr2 Movq op1 (VReg Rax), Instr2 Subq op2 (VReg Rax), Instr2 Movq (VReg Rax) res] 
+    | otherwise =  [Instr2 Movq op1 res, Instr2 Subq op2 res]      -- var = op1 -op2
 
 umop:: UnaryOp -> AsmVOp -> AsmVOp -> [InstrVar]
 umop USub op r = [Instr2 Movq op r, Instr1 Negq r]

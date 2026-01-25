@@ -10,6 +10,7 @@ data Settings = Settings
   , printAst     :: Bool      -- ^ Print the Abstract Syntax Tree (AST)
   , printRco     :: Bool      -- ^ Print the outout of the remove complex operands phase
   , printSi      :: Bool      -- ^ Print the assembler code after Select Instructions phase
+  , printAr      :: Bool      -- ^ Print the assembler code after Assign Register phase
   , printAh      :: Bool      -- ^ Print the assembler code after Assign Homes phase
   , printPatch   :: Bool      -- ^ Print the assembler code after the Patch Instructions phase 
   , printEpilog  :: Bool      -- ^ Print the assembler code after adding prolog and epilog
@@ -29,6 +30,7 @@ defaultSettings = Settings
   , printAst = False
   , printRco = False 
   , printSi  = False
+  , printAr  = False
   , printAh  = False
   , printPatch = False
   , printEpilog = False
@@ -61,6 +63,10 @@ options = optSpec
       , Option ['s'] ["printSi"]
         "Display the first assembler code."
         $ NoArg $ \s -> Right s { printSi = True }
+
+      , Option ['r'] ["printAr"]
+        "Display after AssignRegisters."
+        $ NoArg $ \s -> Right s { printAr = True }
 
       , Option ['h'] ["printAh"]
         "Display after AssignHomes."

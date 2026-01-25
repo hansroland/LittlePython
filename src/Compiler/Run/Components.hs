@@ -13,6 +13,8 @@ import Control.Monad (when, unless)
 import System.FilePath
 import System.Directory
 
+import qualified Data.Map.Strict as Map               -- temporary
+
 -- | Run whole compiler 
 run :: Settings -> IO () 
 run settings = do 
@@ -55,8 +57,13 @@ compile settings ast = do
   let progInstrV = selectInstr progRco 
   when settings.printSi $ printPhaseRslt "Select Instructions" $ pp progInstrV 
 
+  -- Assign Registers
+  let varRegMap = assignRegisters progInstrV
+  when settings.printAr $ printPhaseRslt "AssignRegisters" $ pp varRegMap
+
   -- Assign Homes
-  let progAssignHomes = assignHomes progInstrV
+  let progAssignHomes = assignHomes Map.empty progInstrV      -- temporary disable 
+  -- let progAssignHomes = assignHomes varRegMap progInstrV
   when settings.printAh $ printPhaseRslt "Assign Homes" $ pp progAssignHomes
 
   -- Patch Instructions

@@ -9,8 +9,10 @@ module Compiler.Syntax.LangXAsm86 where
 import Compiler.Syntax.LangBase
 import Data.Char(toLower)
 import Data.List (intercalate)
-import Data.Set (Set)
+import           Data.Set (Set)
 import qualified Data.Set as Set
+import           Data.Map (Map)
+import qualified Data.Map as Map
 
 -- Registers
 data Reg = Rsp | Rbp | Rax | Rbx | Rcx | Rdx | Rsi | Rdi |
@@ -89,6 +91,9 @@ instance PP (Set AsmVOp) where
 instance PP [Set AsmVOp] where 
     pp sets = intercalate "\n" (pp <$> sets)
 
+instance PP (Map AsmVOp AsmVOp) where 
+    pp mymap = pp $ Map.toList mymap
+
 instance PP AsmOpc2 where 
     pp op = toLower <$> show op
     
@@ -118,10 +123,14 @@ leftm :: String
 leftm = replicate 4 ' '
 
 -- | Check, whether an operand is an immediate operand
-isImm :: AsmVOp -> Bool
-isImm  (VImm _) = True 
-isImm  _        = False
+isVImm :: AsmVOp -> Bool
+isVImm  (VImm _) = True 
+isVImm  _        = False
 
+-- | Check, whether an operand is a variable operand
+isVVar :: AsmVOp -> Bool 
+isVVar (VVar _) = True 
+isVVar _        = False 
 
 -- | CalleR saved registers
 calleRSavedRegs :: [Reg]

@@ -4,9 +4,12 @@ module Compiler.Phases (
     , optimizeSExpr
     , rco
     , selectInstr
+    , assignRegisters
     , uncoverLive 
     , edgePairs
     , assignHomes
+    , regs0vars
+    , regs4vars
     , patchInstr
     , proEpilog
     )

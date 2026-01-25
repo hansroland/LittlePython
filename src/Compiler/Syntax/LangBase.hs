@@ -14,9 +14,12 @@ instance (PP a) => PP (Either String a) where
     pp (Left e) = ("Error: " <> e)
     pp (Right a) = pp a
 
-
 instance (PP a, PP b) => PP (a,b) where 
     pp (a,b) = concat ["(", pp a, ", ", pp b, ")"]
+
+instance (PP a) => PP (Maybe a) where 
+    pp (Just x) = "Just " <> pp x 
+    pp Nothing  = "Nothing"
 
 data BinOp = Add | Sub
     deriving (Show, Eq)
