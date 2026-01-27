@@ -41,14 +41,14 @@ data AsmOpc1 = Negq
             | Popq
            deriving (Show, Eq)
 
-data AsmOpc0 = Callq String Int  -- functionNm arity            
-             | Retq
+data AsmOpc0 = Retq
            deriving (Show, Eq)
 
 -- Polymorphic instruction type
 data Instr o = Instr2 AsmOpc2 !o !o 
              | Instr1 AsmOpc1 !o 
              | Instr0 AsmOpc0
+             | InstrCall String ![o]
              | InstrGlob String 
              | InstrLabl String
            deriving (Show, Eq)
@@ -94,6 +94,9 @@ instance PP [Set AsmVOp] where
 instance PP (Map AsmVOp AsmVOp) where 
     pp mymap = pp $ Map.toList mymap
 
+instance PP [(InstrVar, Set AsmVOp)] where
+    pp plist = intercalate "\n" (pp <$> plist)
+
 instance PP AsmOpc2 where 
     pp op = toLower <$> show op
     
@@ -103,10 +106,14 @@ instance PP AsmOpc1 where
 instance PP AsmOpc0 where 
     pp op = toLower <$> show op
 
-instance (PP top) => PP (Instr top)  where
+-- instance PP AsmOpcCall where
+--    pp (Callq str atoms) = "Call"
+
+instance PP top => PP (Instr top)  where
     pp (Instr2 op s d) = concat [leftm, pp op, "  ", pp s, ", ", pp d]
     pp (Instr1 op sd)  = concat [leftm, pp op, "  ",  pp sd]
-    pp (Instr0 (Callq s ar)) = concat [leftm, "callq ", s, " # arity:", show ar]
+    pp (InstrCall fn atms) = (concat [leftm, "callq ", fn, " # args:"])
+       <> intercalate " " (pp <$> atms)
     pp (Instr0 op) = concat [leftm, pp op]
     pp (InstrGlob lbl) = concat [leftm, ".globl ", lbl]
     pp (InstrLabl lbl) = concat [lbl, ":"]

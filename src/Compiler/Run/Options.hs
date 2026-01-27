@@ -10,6 +10,8 @@ data Settings = Settings
   , printAst     :: Bool      -- ^ Print the Abstract Syntax Tree (AST)
   , printRco     :: Bool      -- ^ Print the outout of the remove complex operands phase
   , printSi      :: Bool      -- ^ Print the assembler code after Select Instructions phase
+  , printLi      :: Bool      -- ^ Print the results of the lifeness analysis
+  , printGraph   :: Bool      -- ^ Print the edges for the graph
   , printAr      :: Bool      -- ^ Print the assembler code after Assign Register phase
   , printAh      :: Bool      -- ^ Print the assembler code after Assign Homes phase
   , printPatch   :: Bool      -- ^ Print the assembler code after the Patch Instructions phase 
@@ -30,6 +32,8 @@ defaultSettings = Settings
   , printAst = False
   , printRco = False 
   , printSi  = False
+  , printLi  = False
+  , printGraph  = False
   , printAr  = False
   , printAh  = False
   , printPatch = False
@@ -63,6 +67,14 @@ options = optSpec
       , Option ['s'] ["printSi"]
         "Display the first assembler code."
         $ NoArg $ \s -> Right s { printSi = True }
+
+      , Option ['l'] ["printLive"]
+        "Display the results of the lifeness analysis."
+        $ NoArg $ \s -> Right s { printLi = True }
+
+      , Option ['g'] ["printEdges"]
+        "Display the results of the edges for the graph"
+        $ NoArg $ \s -> Right s { printGraph = True }
 
       , Option ['r'] ["printAr"]
         "Display after AssignRegisters."

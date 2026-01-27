@@ -2,7 +2,7 @@
 
 module Compiler.Phases.AssignRegisters (
   assignRegisters, regs0vars, regs4vars, 
-  uncoverLive, edgePairs
+  uncoverLive, edgePairs, wOps, rOps, colorGraph
   ) where 
 
 import           Compiler.Syntax 
@@ -66,7 +66,7 @@ instance PP AssocVarColor where
     concat $ [pp operand, "->", pp col] 
 
 -- | Combine the Graph with the Node data
---    The graph is constant over the whole processin
+--    The graph is constant over the whole processing
 --    The NodeData changes in every unfold step
 data AllGraphData = AllGraphData Graph NodeMap
 
@@ -76,7 +76,7 @@ data AllGraphData = AllGraphData Graph NodeMap
 regs4vars :: [Reg]
 regs4vars = [Rcx, Rdx, Rsi, Rdi, R8, R9, R10, Rbx, R12, R13, R14]
 
--- | Registers NOT used for variable assignement in phase register allocation
+-- | Registers NOT used for variable assignment in phase register allocation
 regs0vars :: [Reg] 
 regs0vars = [R15, R11, Rbp, Rsp, Rax]
 
@@ -112,14 +112,13 @@ color2Reg colRegMap (vop, col) =
 -- Discovers which variables are in use in different regions of a program. 
 -- A variable or register is live at a program point if its current value 
 -- is used at some later point in the program.
--- `init` we are reversed but want the after set
 uncoverLive :: [InstrVar] -> [(InstrVar, Set AsmVOp)] 
-uncoverLive insts = zip insts $ reverse $ init $ scanl step Set.empty $ reverse insts 
+uncoverLive insts = zip insts $ reverse $ scanl step Set.empty $ reverse insts 
   where
     step :: Set AsmVOp -> InstrVar -> Set AsmVOp
     step lafter inst = 
         --  L before (k) = (L after (k) − W(k)) ∪ R(k),
-        (lafter `Set.difference` wOps inst) `Set.union` rOps inst
+        (lafter `Set.difference` (wOps inst)) `Set.union` (rOps inst)
 
 -- | Extract the read operands from an instruction 
 -- The callq instruction should include the appropriate 
@@ -130,7 +129,7 @@ rOps :: InstrVar -> Set AsmVOp
 rOps (Instr2 Movq s _) = if isVImm s then Set.empty else Set.singleton s
 rOps (Instr2 _op s d)  = if isVImm s then Set.singleton d else Set.fromList [s,d] 
 rOps (Instr1 _op sd)   = Set.singleton sd
-rOps (Instr0 (Callq _s ar)) = Set.fromList $ take ar argumentPassingRegs
+rOps (InstrCall _fn args) = Set.fromList args
 rOps (Instr0 _op) = Set.empty
 rOps (InstrGlob _lbl) = Set.empty
 rOps (InstrLabl _lbl) = Set.empty
@@ -142,7 +141,7 @@ rOps (InstrLabl _lbl) = Set.empty
 wOps :: InstrVar -> Set AsmVOp
 wOps (Instr2 _ _ d) = Set.singleton d 
 wOps (Instr1 _ sd)  = Set.singleton sd
-wOps (Instr0 (Callq _s _ar)) = Set.fromList $ VReg <$> calleRSavedRegs
+wOps (InstrCall _s _ar) = Set.empty   -- Set.fromList $ VReg <$> calleRSavedRegs
 wOps (Instr0 _) = Set.empty
 wOps (InstrGlob _) = Set.empty
 wOps (InstrLabl _) = Set.empty
@@ -154,11 +153,11 @@ wOps (InstrLabl _) = Set.empty
 edgePairs :: [InstrVar] -> [(AsmVOp, AsmVOp)]
 edgePairs instrs = nub $ concat $ edgePairsByInstr <$> uncoverLive instrs
   where
+    -- Here we removed the special handling of the move instruction.
+    -- Example prog05.lpy didn't work. (A register was overwritten!!)
+    -- example book44, however, now uses more registers
     edgePairsByInstr :: (InstrVar, Set AsmVOp) -> [(AsmVOp, AsmVOp)]
-    edgePairsByInstr (instr@(Instr2 Movq s _), lafter) = -- trace ("trace 1 -> " <> pp instr <> " " <> pp (wOps instr) <> " <-") $ 
-        [(d,v) | d <- Set.toList $ wOps instr, v <- Set.toList lafter, 
-                 d /= v, v /= s, s /= d ] 
-    edgePairsByInstr (instr, lafter) =          -- trace ("trace 2 -> " <> pp instr <> " " <> pp (wOps instr) <> " <-") $ 
+    edgePairsByInstr (instr, lafter) =          
       [(d,v) | d <- Set.toList $ wOps instr, v <- Set.toList lafter,  d /= v] 
 
 
@@ -231,7 +230,8 @@ unfoldNode graph nodeMap nodeKey =
     newMap1 = updateMarks newColor neighbrsData nodeMap 
     newMap2 = updateColor newColor nodeKey newMap1 
     allGraphData = AllGraphData graph newMap2
-  in Just (assocVarColor, allGraphData)  
+  in 
+    Just (assocVarColor, allGraphData)  
 
 -- | NodeDatas for all the neighbours of a Node
 neighboursData :: Graph -> NodeMap -> AsmVOp -> [NodeData]

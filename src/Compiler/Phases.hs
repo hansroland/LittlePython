@@ -7,6 +7,9 @@ module Compiler.Phases (
     , assignRegisters
     , uncoverLive 
     , edgePairs
+    , wOps
+    , rOps
+    , colorGraph
     , assignHomes
     , regs0vars
     , regs4vars

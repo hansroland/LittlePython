@@ -57,6 +57,14 @@ compile settings ast = do
   let progInstrV = selectInstr progRco 
   when settings.printSi $ printPhaseRslt "Select Instructions" $ pp progInstrV 
 
+  -- Liveness analysis
+  let lifeness = uncoverLive progInstrV
+  when settings.printLi $ printPhaseRslt "Lifeness Analysis" $ pp lifeness
+
+  -- Edges (suppress those with registers)
+  let edges = filter (\(x,y) -> (isVVar x && isVVar y)) $ edgePairs progInstrV
+  when settings.printGraph $ printPhaseRslt "Edges for graph" $ pp edges
+
   -- Assign Registers
   let varRegMap = assignRegisters progInstrV
   when settings.printAr $ printPhaseRslt "AssignRegisters" $ pp varRegMap

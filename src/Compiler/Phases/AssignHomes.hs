@@ -24,10 +24,12 @@ assignHomes regmap vstmts =
     -- frameSize = Map.size astmts        -- temporary disabled
  
     -- Assign Homes for Instructions
+    -- Translate from Variables to Addresses
     asHInstr :: InstrVar -> AssignMonad InstrInt 
     asHInstr (Instr2 opc op1 op2) = Instr2 opc <$> (asROp op1) <*> (asROp op2)
     asHInstr (Instr1 opc op1)     = Instr1 opc <$> asROp op1
     asHInstr (Instr0 opc)         = pure $ Instr0 opc  
+    asHInstr (InstrCall fn atms)  = InstrCall fn <$> (mapM asROp atms)
     asHInstr (InstrGlob lbl)      = pure $ InstrGlob lbl
     asHInstr (InstrLabl lbl)      = pure $ InstrLabl lbl
     -- If possible, replace variable by register
