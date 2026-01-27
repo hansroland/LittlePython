@@ -82,8 +82,7 @@ book44 =
     , Instr1 Negq tmp0
     , Instr2 Movq z tmp1
     , Instr2 Addq tmp0 tmp1
---    , Instr2 Movq tmp1 (VReg Rdi)
-    , InstrCall "print_int" [tmp1]
+    , InstrCall "print_int" Nothing [tmp1]
     ]
 
 

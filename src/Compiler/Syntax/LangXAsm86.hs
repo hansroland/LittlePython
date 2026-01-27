@@ -48,7 +48,7 @@ data AsmOpc0 = Retq
 data Instr o = Instr2 AsmOpc2 !o !o 
              | Instr1 AsmOpc1 !o 
              | Instr0 AsmOpc0
-             | InstrCall String ![o]
+             | InstrCall String !(Maybe o) ![o]  
              | InstrGlob String 
              | InstrLabl String
            deriving (Show, Eq)
@@ -112,7 +112,9 @@ instance PP AsmOpc0 where
 instance PP top => PP (Instr top)  where
     pp (Instr2 op s d) = concat [leftm, pp op, "  ", pp s, ", ", pp d]
     pp (Instr1 op sd)  = concat [leftm, pp op, "  ",  pp sd]
-    pp (InstrCall fn atms) = (concat [leftm, "callq ", fn, " # args:"])
+    pp (InstrCall fn Nothing atms) = (concat [leftm, "callq ", fn,  " # args:"])
+       <> intercalate " " (pp <$> atms)
+    pp (InstrCall fn (Just rslt) atms) = (concat [leftm, pp rslt ," = callq ", fn, " # args:"])
        <> intercalate " " (pp <$> atms)
     pp (Instr0 op) = concat [leftm, pp op]
     pp (InstrGlob lbl) = concat [leftm, ".globl ", lbl]
@@ -146,5 +148,5 @@ calleRSavedRegs = [Rax, Rcx, Rdx, Rdi, Rsi, R8, R9, R10, R11]
 calleESavedRegs :: [Reg]
 calleESavedRegs = [Rsp, Rbp, Rbx, R12, R13, R14, R15] 
 
-argumentPassingRegs :: [AsmVOp]
-argumentPassingRegs = VReg <$> [Rdi, Rsi, Rdx, Rcx, R8, R9]
+argumentPassingRegs :: [AsmIOp]
+argumentPassingRegs = IReg <$> [Rdi, Rsi, Rdx, Rcx, R8, R9]

@@ -129,7 +129,7 @@ rOps :: InstrVar -> Set AsmVOp
 rOps (Instr2 Movq s _) = if isVImm s then Set.empty else Set.singleton s
 rOps (Instr2 _op s d)  = if isVImm s then Set.singleton d else Set.fromList [s,d] 
 rOps (Instr1 _op sd)   = Set.singleton sd
-rOps (InstrCall _fn args) = Set.fromList args
+rOps (InstrCall _fn _as args) = Set.fromList args
 rOps (Instr0 _op) = Set.empty
 rOps (InstrGlob _lbl) = Set.empty
 rOps (InstrLabl _lbl) = Set.empty
@@ -141,7 +141,8 @@ rOps (InstrLabl _lbl) = Set.empty
 wOps :: InstrVar -> Set AsmVOp
 wOps (Instr2 _ _ d) = Set.singleton d 
 wOps (Instr1 _ sd)  = Set.singleton sd
-wOps (InstrCall _s _ar) = Set.empty   -- Set.fromList $ VReg <$> calleRSavedRegs
+wOps (InstrCall _fn (Just as) _ar) = Set.singleton as   
+wOps (InstrCall _fn  Nothing  _ar) = Set.empty   
 wOps (Instr0 _) = Set.empty
 wOps (InstrGlob _) = Set.empty
 wOps (InstrLabl _) = Set.empty

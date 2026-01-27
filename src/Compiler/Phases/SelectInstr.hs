@@ -10,19 +10,20 @@ siStmt (MStmtCall fun atoms )  = siStmtCall fun atoms
 siStmt (MStmtAssign fun expr) = siStmtAssign fun expr
 siStmt (MStmtExpr e ) = siStmtExpr e
 
--- TODO: More than 6 call arguments
 siStmtCall :: String -> [MAtom] -> [InstrVar]
-siStmtCall fun atoms = parmInstr <> [InstrCall (fixFuncName fun) (fromAtom <$> atoms)]
+siStmtCall fun atoms = 
+    [InstrCall (fixFuncName fun) Nothing  (fromAtom <$> atoms)]
+{-
   where 
     -- pair the atom with the argument corresponding argument reg
     pairs :: [(MAtom, AsmVOp)]
     pairs = zip atoms argumentPassingRegs
     parmInstr :: [InstrVar]
     parmInstr = siStmtCallAtom <$> pairs
---    arity = length atoms 
     siStmtCallAtom :: (MAtom, AsmVOp) -> InstrVar
     siStmtCallAtom (MAtomVar v, vreg) = Instr2 Movq (VVar v) vreg
     siStmtCallAtom (MAtomInt n, vreg) = Instr2 Movq (VImm n) vreg
+-}
 
 siStmtAssign :: String -> MExpr -> [InstrVar]
 siStmtAssign v (MExprAtom a ) = [Instr2 Movq (fromAtom a) (VVar v)]
@@ -30,13 +31,11 @@ siStmtAssign v (MExprBinOp op atom1 atom2) =
     binop op (fromAtom atom1) (fromAtom atom2) (VVar v) 
 siStmtAssign v (MExprUOp uop a) = umop uop (fromAtom a) (VVar v)
 siStmtAssign v (MExprFunc _ fun atoms ) =   
-    [ InstrCall (fixFuncName fun) (fromAtom <$> atoms)    
-    , Instr2 Movq (VReg Rax)(VVar v) ]
+    [ InstrCall (fixFuncName fun) (Just (VVar v)) (fromAtom <$> atoms) ]  
 
 siStmtExpr :: MExpr -> [InstrVar]
 siStmtExpr (MExprFunc var fun atoms ) = 
-    [InstrCall (fixFuncName fun) (fromAtom <$> atoms)
-    , Instr2 Movq (VReg Rax) (VVar var)]
+    [ InstrCall (fixFuncName fun) (Just (VVar var)) (fromAtom <$> atoms)]
 siStmtExpr e = error $ "selectInstr.siStmtExpr NOT_IMPL e: " <> show e
 
 binop :: BinOp -> AsmVOp -> AsmVOp -> AsmVOp -> [InstrVar]

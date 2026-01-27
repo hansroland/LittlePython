@@ -21,5 +21,23 @@ patchInstrInstr (Instr2 opc (IImm n) (IMem od dr)) =
                             Instr2 opc (IMem od dr) (IReg Rax)]
                       else [Instr2 opc (IImm n) (IMem od dr)]
                 where twoPower31 = (2:: Int) ^ (31:: Int) 
+-- Process parameters for Call Instruction 
+patchInstrInstr (InstrCall fn mbv args) = 
+      concat [parmInstrs args, callInstr, assignInstr mbv] -- TODO  This is slow !! use the Shows trick. 
+  where 
+    parmInstrs :: [AsmIOp] -> [InstrInt]
+    parmInstrs asmOps = 
+        buildParm <$> zip asmOps argumentPassingRegs
+
+    buildParm :: (AsmIOp, AsmIOp) -> InstrInt 
+    buildParm (oprnd, reg) = Instr2 Movq oprnd reg
+
+    callInstr :: [InstrInt]
+    callInstr = [InstrCall fn Nothing []]  
+
+    assignInstr :: Maybe AsmIOp -> [InstrInt]
+    assignInstr (Just ivar) = [Instr2 Movq (IReg Rax) ivar ]
+    assignInstr Nothing     = []
+-- Don't touch all the rest of our instructions
 patchInstrInstr instr = [instr]
  
