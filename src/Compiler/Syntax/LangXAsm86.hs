@@ -26,8 +26,7 @@ data AsmIOp = IReg !Reg
            deriving (Show, Eq)
 
 -- Operand type for X86Var
-data AsmVOp = VReg !Reg
-           | VVar !String
+data AsmVOp = VVar !String
            | VImm !Int
            deriving (Show, Eq, Ord)
 
@@ -75,11 +74,13 @@ instance PP AsmIOp where
     pp (IImm n)   = '$' : show n
 
 instance PP AsmVOp where 
-    pp (VReg r)   = pp r
     pp (VVar str) = str
     pp (VImm n)   = '$' : show n 
 
 instance PP [(AsmVOp, AsmVOp)] where 
+    pp lst = concat ["[", intercalate ", " (pp <$> lst), "]"]
+
+instance PP [(AsmVOp, AsmIOp)] where 
     pp lst = concat ["[", intercalate ", " (pp <$> lst), "]"]
 
 instance PP [AsmVOp] where

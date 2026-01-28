@@ -81,7 +81,7 @@ regs0vars :: [Reg]
 regs0vars = [R15, R11, Rbp, Rsp, Rax]
 
 -- | Calculate the variables to be store in registers
-assignRegisters :: [InstrVar] ->  Map AsmVOp AsmVOp
+assignRegisters :: [InstrVar] ->  Map AsmVOp AsmIOp
 assignRegisters vinstrs = 
   let 
     -- Create the edges of our graph
@@ -96,14 +96,14 @@ assignRegisters vinstrs =
      -- Color the graph an 
      -- return a map variables -> registers for variables to be
      --   replace by registers
-    Map.fromList $ color2Reg colRegMap <$> colorGraph edges vars
+    Map.fromList $ concat $ color2Reg colRegMap <$> colorGraph edges vars
 
--- | Create a map from colors to the replacement registers 
-color2Reg :: Map Color Reg -> (AsmVOp, Color) -> (AsmVOp, AsmVOp)
+-- | Create a map from colors to replace variables by registers 
+color2Reg :: Map Color Reg -> (AsmVOp, Color) -> [(AsmVOp, AsmIOp)]
 color2Reg colRegMap (vop, col) = 
     case Map.lookup col colRegMap of 
-          Just reg -> (vop, VReg reg)   -- We found the color in the map -> use reg
-          Nothing  -> (vop, vop)        -- otherwise keep current variable
+          Just reg -> [(vop, IReg reg)]   -- We found the color in the map -> use reg
+          Nothing  -> []                  -- otherwise, ignore it
 
 
 -- Uncover Live variables
@@ -186,15 +186,15 @@ colorGraph edges vars  =
 
 -- | Inititialize the node datastructure
 initNodes :: [Reg] -> [Reg] -> [AsmVOp] -> [NodeData]
-initNodes r0vars r4vars vars = initRegNodes <> initVarNodes
+initNodes r0vars r4vars vars = {-initRegNodes <>-} initVarNodes
   where 
     -- | Helper function to initialize the node data 
   initNode :: (AsmVOp, Maybe Color) -> NodeData 
   initNode (loc, mbColor ) = NodeData { ndId = loc, ndColor = mbColor, ndMarks = []}
-  -- | initialize the register nodes, Registers have predefined colors
-  initRegNodes :: [NodeData]
-  initRegNodes = initNode <$>  (zip regs (Just <$> [(Color (-length r0vars))..]))
-    where regs = VReg <$> r0vars <> r4vars
+--   -- | initialize the register nodes, Registers have predefined colors
+--   initRegNodes :: [NodeData]
+--  initRegNodes = initNode <$>  (zip regs (Just <$> [(Color (-length r0vars))..]))
+--    where regs = VReg <$> r0vars <> r4vars
   -- | initialize the variable nodes from the list of variables. Variables have no colors
   initVarNodes :: [NodeData]
   initVarNodes = initNode <$> (zip vars (repeat Nothing))

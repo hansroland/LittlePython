@@ -67,7 +67,8 @@ compile settings ast = do
 
   -- Assign Registers
   let varRegMap = assignRegisters progInstrV
-  when settings.printAr $ printPhaseRslt "AssignRegisters" $ pp varRegMap
+  when settings.printAr $ printPhaseRslt "AssignRegisters" 
+        $ pp $ Map.assocs varRegMap
 
   -- Assign Homes
   let progAssignHomes = assignHomes Map.empty progInstrV      -- temporary disable 

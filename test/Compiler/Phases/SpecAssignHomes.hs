@@ -11,15 +11,15 @@ specAssignHomes :: Spec
 specAssignHomes = do
   describe "Tests for module Compiler.Phases.AssignHomes" $ do
     it "testah prog01.lpy" $ do  
-       (testah "examples/prog01.lpy") `shouldReturn` "    movq  $10, -8(%rbp)\n    negq  -8(%rbp)\n    movq  $42, -16(%rbp)\n    addq  -8(%rbp), -16(%rbp)\n    callq print_int # args:-16(%rbp)\n" 
+       (testah "examples/prog01.lpy") `shouldReturn` "    movq  $10, %rcx\n    negq  %rcx\n    movq  $42, %rcx\n    addq  %rcx, %rcx\n    callq print_int # args:%rcx\n" 
     it "testah prog02" $ do
-       (testah "examples/prog02.lpy") `shouldReturn` "    movq  $42, -8(%rbp)\n    movq  -8(%rbp), -16(%rbp)\n    callq print_int # args:-16(%rbp)\n" 
+       (testah "examples/prog02.lpy") `shouldReturn` "    movq  $42, %rcx\n    movq  %rcx, %rcx\n    callq print_int # args:%rcx\n" 
     it "testah prog03" $ do
-       (testah "examples/prog03.lpy") `shouldReturn` "    movq  $10, -8(%rbp)\n    movq  $20, -16(%rbp)\n    movq  $30, -24(%rbp)\n    movq  $40, -32(%rbp)\n    movq  -8(%rbp), -40(%rbp)\n    subq  -16(%rbp), -40(%rbp)\n    movq  -24(%rbp), -48(%rbp)\n    subq  -32(%rbp), -48(%rbp)\n    movq  -40(%rbp), -56(%rbp)\n    addq  -48(%rbp), -56(%rbp)\n    callq print_int # args:-56(%rbp)\n" 
+       (testah "examples/prog03.lpy") `shouldReturn` "    movq  $10, %r8\n    movq  $20, %r9\n    movq  $30, %rdx\n    movq  $40, %rsi\n    movq  %r8, %rdi\n    subq  %r9, %rdi\n    movq  %rdx, %r10\n    subq  %rsi, %r10\n    movq  %rdi, %rcx\n    addq  %r10, %rcx\n    callq print_int # args:%rcx\n" 
     it "testah prog04" $ do
-       (testah "examples/prog04.lpy") `shouldReturn` "    movq  $42, -8(%rbp)\n    subq  $84, -8(%rbp)\n    movq  $42, -16(%rbp)\n    subq  $84, -16(%rbp)\n    movq  -16(%rbp), -24(%rbp)\n    addq  $25, -24(%rbp)\n    movq  -8(%rbp), -32(%rbp)\n    subq  -24(%rbp), -32(%rbp)\n    callq print_int # args:-32(%rbp)\n"
---    it "testah prog05" $ do
---       (testah "examples/prog05.lpy") `shouldReturn` "susi"
+       (testah "examples/prog04.lpy") `shouldReturn` "    movq  $42, %rsi\n    subq  $84, %rsi\n    movq  $42, %rcx\n    subq  $84, %rcx\n    movq  %rcx, %rdi\n    addq  $25, %rdi\n    movq  %rsi, %rdx\n    subq  %rdi, %rdx\n    callq print_int # args:%rdx\n"
+    it "testah prog05" $ do
+       (testah "examples/prog05.lpy") `shouldReturn` "    %rdx = callq read_int # args:\n    %rsi = callq read_int # args:\n    movq  %rdx, %rcx\n    addq  %rsi, %rcx\n    callq print_int # args:%rcx\n"
 
 testah :: FilePath -> IO String 
 testah path = do 

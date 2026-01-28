@@ -6,22 +6,18 @@ import Control.Monad.State.Strict
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict(Map)
 
-emptydict :: Map String AsmIOp
-emptydict = Map.empty
-
 -- | A state monad with a map to store a variable -> address dictionary
-type AssignMonad a = State (Map String AsmIOp) a
+type AssignMonad a = State (Map AsmVOp AsmIOp) a
 
 -- | Replace variables with addresses on the stack
---     regmap   : Map to replace variables by registers
---     ProgAsmV : Assembler with variables
---     ProgAsmI . Assembler without variables
-assignHomes :: Map AsmVOp AsmVOp -> ProgAsmV -> ProgAsmI
-assignHomes regmap vstmts =
+--     vrmap     : Map to replace variables by registers
+--     ProgAsmV  : Assembler with variables
+--     ProgAsmI  : Assembler without variables
+assignHomes :: Map AsmVOp AsmIOp -> ProgAsmV -> ProgAsmI
+assignHomes vrmap vstmts =
   let 
-    (astmts, vardict) = runState (sequence (asHInstr <$> vstmts)) emptydict
-    frameSize = Map.size vardict          -- temporary enabled
-    -- frameSize = Map.size astmts        -- temporary disabled
+    (astmts, varmap) = runState (sequence (asHInstr <$> vstmts)) vrmap
+    frameSize = calcFrameSize varmap      
  
     -- Assign Homes for Instructions
     -- Translate from Variables to Addresses
@@ -33,22 +29,26 @@ assignHomes regmap vstmts =
     asHInstr (InstrCall fn  Nothing atms)  = InstrCall fn Nothing <$> (mapM asROp atms)
     asHInstr (InstrGlob lbl)      = pure $ InstrGlob lbl
     asHInstr (InstrLabl lbl)      = pure $ InstrLabl lbl
-    -- If possible, replace variable by register
+    -- If possible, replace variable by register / home address
     asROp :: AsmVOp -> AssignMonad AsmIOp 
-    asROp = asHOp     -- temporary
-    --     asROp oprnd =  asHOp $ Map.findWithDefault oprnd oprnd regmap 
+    asROp oprnd = do
+        repl <- asHOp oprnd
+        pure $ Map.findWithDefault repl oprnd varmap 
     -- Assign Homes for Operands
     asHOp  :: AsmVOp -> AssignMonad AsmIOp
-    asHOp (VReg r)   = pure $ IReg r 
     asHOp (VImm n)   = pure $ IImm n
-    asHOp (VVar vnam) = do 
+    asHOp vvar = do 
         mbvdict <- get
-        case Map.lookup vnam mbvdict of 
+        case Map.lookup vvar mbvdict of 
             Nothing -> do
                 let offset = -8 * (1 + Map.size mbvdict) 
                 let newEntry = IMem offset Rbp
-                let newdict = Map.insert vnam newEntry mbvdict
+                let newdict = Map.insert vvar newEntry mbvdict
                 _ <- put newdict
                 return newEntry
             Just op -> return op
+    -- Calculate the size of the frame
+    calcFrameSize :: Map AsmVOp AsmIOp -> Int    
+    calcFrameSize varmap = Map.size varmap     -- TODO filter out registers
+                                               --      add save registers
   in ProgAsmI frameSize $ astmts 
