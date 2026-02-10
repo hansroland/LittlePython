@@ -6,21 +6,22 @@ import Control.Monad.State.Strict
 import qualified Data.Map.Strict as Map
 import Data.Map.Strict(Map)
 
--- | A state monad with a map to store a variable -> address dictionary
-type AssignMonad a = State (Map AsmVOp AsmIOp) a
+-- | A state monad with a map to store 
+--      - a variable -> address dictionary
+--      - the current maximal offset from the base pointer
+type AssignMonad a = State (Map AsmVOp AsmIOp, Offset) a
 
 -- | Replace variables with addresses on the stack
 --     vrmap     : Map to replace variables by registers
---     ProgAsmV  : Assembler with variables
---     ProgAsmI  : Assembler without variables
+--     ProgAsmV  : Assembler program with variables
+--     ProgAsmI  : Assembler program with memory addresses
 assignHomes :: Map AsmVOp AsmIOp -> ProgAsmV -> ProgAsmI
 assignHomes vrmap vstmts =
   let 
-    (astmts, varmap) = runState (sequence (asHInstr <$> vstmts)) vrmap
-    frameSize = calcFrameSize varmap      
+    (astmts, (varmap, maxOffset)) = runState (sequence (asHInstr <$> vstmts)) (vrmap, Offset 0)    
  
     -- Assign Homes for Instructions
-    -- Translate from Variables to Addresses
+    -- Translate instructions from Variables to Addresses / Registers
     asHInstr :: InstrVar -> AssignMonad InstrInt 
     asHInstr (Instr2 opc op1 op2) = Instr2 opc <$> (asROp op1) <*> (asROp op2)
     asHInstr (Instr1 opc op1)     = Instr1 opc <$> asROp op1
@@ -38,17 +39,13 @@ assignHomes vrmap vstmts =
     asHOp  :: AsmVOp -> AssignMonad AsmIOp
     asHOp (VImm n)   = pure $ IImm n
     asHOp vvar = do 
-        mbvdict <- get
+        (mbvdict, offset) <- get
         case Map.lookup vvar mbvdict of 
             Nothing -> do
-                let offset = -8 * (1 + Map.size mbvdict) 
-                let newEntry = IMem offset Rbp
-                let newdict = Map.insert vvar newEntry mbvdict
-                _ <- put newdict
+                let newOffset = offset - 8 
+                let newEntry = IMem newOffset Rbp
+                let newDict = Map.insert vvar newEntry mbvdict
+                _ <- put (newDict, newOffset)
                 return newEntry
             Just op -> return op
-    -- Calculate the size of the frame
-    calcFrameSize :: Map AsmVOp AsmIOp -> Int    
-    calcFrameSize varmap = Map.size varmap     -- TODO filter out registers
-                                               --      add save registers
-  in ProgAsmI frameSize $ astmts 
+  in ProgAsmI maxOffset  astmts 

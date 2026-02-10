@@ -66,13 +66,14 @@ compile settings ast = do
   when settings.printGraph $ printPhaseRslt "Edges for graph" $ pp edges
 
   -- Assign Registers
-  let varRegMap = assignRegisters progInstrV
-  when settings.printAr $ printPhaseRslt "AssignRegisters" 
-        $ pp $ Map.assocs varRegMap
+  let (varRegMap, usedCalleeSaveRegs) = assignRegisters progInstrV
+  when settings.printAr $ do 
+    printPhaseRslt "AssignRegisters" $ pp $ Map.assocs varRegMap 
+
+--     putStrLn $ "Callee Saved Registers " <> concat (pp <$> usedCalleeSaveRegs)  --TODO add Blanks
 
   -- Assign Homes
-  let progAssignHomes = assignHomes Map.empty progInstrV      -- temporary disable 
-  -- let progAssignHomes = assignHomes varRegMap progInstrV
+  let progAssignHomes = assignHomes varRegMap progInstrV
   when settings.printAh $ printPhaseRslt "Assign Homes" $ pp progAssignHomes
 
   -- Patch Instructions
@@ -80,8 +81,10 @@ compile settings ast = do
   when settings.printPatch $ printPhaseRslt "Patch Instructions" $ pp progInstrI 
 
   -- Add Prolog and Epilog
-  let asm = pp $ proEpilog progInstrI
+  let asm = pp $ proEpilog progInstrI usedCalleeSaveRegs
   when settings.printEpilog $ printPhaseRslt "Final Programme" $ asm
+
+  -- putStrLn $ ("usedCalleSaveRegs: " <> concat ( pp <$> usedCalleeSaveRegs))
 
   return asm
 

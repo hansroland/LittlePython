@@ -1,22 +1,22 @@
 -- {-# OPTIONS_GHC -Wno-x-partial -Wno-unrecognised-warning-flags #-}
 
 module Compiler.Phases.AssignRegisters (
-  assignRegisters, regs0vars, regs4vars, 
+  assignRegisters, 
   uncoverLive, edgePairs, wOps, rOps, colorGraph
   ) where 
 
 import           Compiler.Syntax 
 
 import           Data.Set (Set)
--- import qualified Data.Set as Set
+import qualified Data.Set as Set
+
 import qualified Algebra.Graph.Undirected as G 
 
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 
-import qualified Data.Set as Set
 import           Data.Maybe (isNothing, mapMaybe)
-import           Data.List (nub, maximumBy, unfoldr, intercalate)
+import           Data.List (nub, maximumBy, unfoldr, intercalate, intersect )
 import           Data.Ord (comparing)
 
 -- Variables for the coloring algo 
@@ -28,16 +28,24 @@ newtype Color = Color { uncolor :: Int }
 instance PP Color where 
   pp (Color n) = show n
 
+instance PP (Set Color) where 
+  pp cols = pp $ Set.toList cols
+
+instance PP [Color] where 
+  pp cols = intercalate ", " (pp <$> cols)
+
 data NodeData = NodeData
-    { ndId :: !AsmVOp                  -- NodeData Id = the location (AsmVOP) of the node
-    , ndColor :: !(Maybe Color)        -- The color assigned to this node
-    , ndMarks :: ![Color]              -- Colored neighbours ("paper marks") to calculate saturation
+    { ndId :: !AsmVOp             -- NodeData Id = the location (AsmVOP) of the node
+    , ndColor :: !(Maybe Color)   -- The color assigned to this node. 
+                                  --    Must be different to all stop colors
+    , ndStops :: ![Color]         -- Stop colors: The color of the neighbours. 
     }  -- deriving (Show) 
 
 instance PP NodeData where 
     pp node = concat [ "Node: ",  show (ndId node) 
                      , " color:", pp  (ndColor node)
-                     , " Marks: ",intercalate ", " (pp <$> ndMarks node)
+                     , " stops: ",intercalate ", " (pp <$> ndStops node)
+                     , "\n"
                      ]
 
 -- | Interference Graph with all the variables
@@ -47,6 +55,14 @@ type Graph = G.Graph AsmVOp
 --        key: AsmVOp 
 --        value: NodeData
 type NodeMap = Map AsmVOp NodeData
+
+instance PP (AsmVOp, NodeData) where 
+  pp (key, nodeData) = pp key <> " --> " <> pp nodeData
+
+instance PP [(AsmVOp, Color)] where 
+   pp (a : as) = pp a <> " " <> pp as
+   pp []       = ""
+
 
 -- Asociation datatypes: We use them to avoid nested tuples 
 -- in the unfoldr function
@@ -59,61 +75,59 @@ data AssocVarColor = AssocVarColor AsmVOp Color
 unAssocVarColor :: AssocVarColor -> (AsmVOp, Color)
 unAssocVarColor (AssocVarColor oprnd col) = (oprnd, col) 
 
--- replColorByReg :: [(AsmVOP, Int)] ->
-
 instance PP AssocVarColor where 
   pp (AssocVarColor operand col) = 
     concat $ [pp operand, "->", pp col] 
 
--- | Combine the Graph with the Node data
---    The graph is constant over the whole processing
---    The NodeData changes in every unfold step
-data AllGraphData = AllGraphData Graph NodeMap
-
--- Register Lists 
-
--- | Registers used for variable assignement in phase register allocation
-regs4vars :: [Reg]
-regs4vars = [Rcx, Rdx, Rsi, Rdi, R8, R9, R10, Rbx, R12, R13, R14]
-
--- | Registers NOT used for variable assignment in phase register allocation
-regs0vars :: [Reg] 
-regs0vars = [R15, R11, Rbp, Rsp, Rax]
-
 -- | Calculate the variables to be store in registers
-assignRegisters :: [InstrVar] ->  Map AsmVOp AsmIOp
+--    and the usedCallee Registers
+-- For programs with less than 3 variables graph is too small to be 
+-- useful for the algo. But programs with less than 3 variables don't nne
+-- and optimization !
+assignRegisters :: [InstrVar] ->  (Map AsmVOp AsmIOp, [AsmIOp])
 assignRegisters vinstrs = 
   let 
     -- Create the edges of our graph
     edges = edgePairs vinstrs
-    -- Get all the variables of the program  (apply nub to short lists...) 
-    vars = nub $ (nub (filter isVVar (fst <$> edges)))
-              <> (nub (filter isVVar (snd <$> edges)))
-    -- Create a dictionary Colors -> available Registers
-    colors = [(0::Color)..]
-    colRegMap = Map.fromList $ zip colors regs4vars  
+    -- Get all the variables (and caller saved regs) of the program  
+    --    (apply nub to shorten the lists...) 
+    varsOrRegs = nub $ (nub (filter isVVarOrVReg (fst <$> edges)))
+                    <> (nub (filter isVVarOrVReg (snd <$> edges)))
+    vars = filter isVVar varsOrRegs
+    regs = filter isVReg varsOrRegs
+    -- Create a map: Colors -> available Registers
+    colRegMap = Map.fromList $ zip [(0::Color)..] reg4varsOpnds 
+    -- Create a map: avaliable Registers -> Color
+    regColMap = Map.fromList $ zip reg4varsOpnds [(0::Color)..] 
+    -- Assign colors to used registers
+    regColPairs = [(r,c) | r <- regs, let c = (Map.!) regColMap r]
+    
+    -- Color the graph so that direct neighbours don't have the same color
+    -- return a map variables -> registers for variables to be
+    --   replace by registers
+    colorResult = colorGraph edges vars regColPairs
+    varmap = Map.fromList $ concat $ color2Reg colRegMap <$> colorResult
+    usedCalleeRegs = (IReg <$> calleESavedRegs) `intersect` (filter isIMem (Map.elems varmap))
   in 
-     -- Color the graph an 
-     -- return a map variables -> registers for variables to be
-     --   replace by registers
-    Map.fromList $ concat $ color2Reg colRegMap <$> colorGraph edges vars
+    (varmap, usedCalleeRegs)
 
 -- | Create a map from colors to replace variables by registers 
-color2Reg :: Map Color Reg -> (AsmVOp, Color) -> [(AsmVOp, AsmIOp)]
+-- | Switch from asmVOp to asmIOp data types
+color2Reg :: Map Color AsmVOp -> (AsmVOp, Color) -> [(AsmVOp, AsmIOp)]
 color2Reg colRegMap (vop, col) = 
     case Map.lookup col colRegMap of 
-          Just reg -> [(vop, IReg reg)]   -- We found the color in the map -> use reg
-          Nothing  -> []                  -- otherwise, ignore it
+          Just (VReg reg) -> [(vop, IReg reg)]   -- We found the color in the map -> use reg
+          _               -> []                  -- otherwise, ignore it
 
 
 -- Uncover Live variables
 
 -- | uncoverLive: Performs liveness analysis.
 -- Discovers which variables are in use in different regions of a program. 
--- A variable or register is live at a program point if its current value 
+-- A variable is live at a program point if its current value 
 -- is used at some later point in the program.
 uncoverLive :: [InstrVar] -> [(InstrVar, Set AsmVOp)] 
-uncoverLive insts = zip insts $ reverse $ scanl step Set.empty $ reverse insts 
+uncoverLive insts = zip insts $ reverse {-$ init -} $ scanl step Set.empty $ reverse insts 
   where
     step :: Set AsmVOp -> InstrVar -> Set AsmVOp
     step lafter inst = 
@@ -154,102 +168,110 @@ wOps (InstrLabl _) = Set.empty
 edgePairs :: [InstrVar] -> [(AsmVOp, AsmVOp)]
 edgePairs instrs = nub $ concat $ edgePairsByInstr <$> uncoverLive instrs
   where
-    -- Here we removed the special handling of the move instruction.
-    -- Example prog05.lpy didn't work. (A register was overwritten!!)
-    -- example book44, however, now uses more registers
     edgePairsByInstr :: (InstrVar, Set AsmVOp) -> [(AsmVOp, AsmVOp)]
-    edgePairsByInstr (instr, lafter) =          
-      [(d,v) | d <- Set.toList $ wOps instr, v <- Set.toList lafter,  d /= v] 
+    edgePairsByInstr (Instr2 Movq s d, lafter) =
+      [(d,v) | v <- Set.toList lafter, v /= d, v /= s]
+    edgePairsByInstr (instr@(InstrCall _fn _opnd _args), lafter) = edgePairsStd instr lafter <>
+      [(d,v) | v <- Set.toList lafter, d <- calleRSavedRegs4Vars, d /= v ]
+    edgePairsByInstr (instr, lafter) = edgePairsStd instr lafter
+    --
+    edgePairsStd instr lafter =
+      [(d,v) | d <- Set.toList $ wOps instr, v <- Set.toList lafter,  d /= v]
+
+-- | Inititialize the node datastructure
+initNodes :: [AsmVOp] -> [(AsmVOp, Color)] -> [NodeData]
+initNodes vars regColPairs = initRegNodes <> initVarNodes  
+  where 
+    -- | Helper function to initialize the node data 
+    initNode :: (AsmVOp, Maybe Color) -> NodeData 
+    initNode (loc, mbColor ) = NodeData { ndId = loc, ndColor = mbColor, ndStops = []}
+    -- | Create NodeDatas for the register nodes, Registers have predefined colors
+    --   create only the registers of the set regs4vars
+    initRegNodes :: [NodeData]
+    initRegNodes = initNode <$> (fmap (fmap Just) regColPairs)
+    -- | initialize the variable nodes from the list of variables. Variables have no colors
+    initVarNodes :: [NodeData]
+    initVarNodes = initNode <$> (zip vars (repeat Nothing))
 
 
 -- Graph Coloring 
 -- | Color the graph with the DSATUR graph coloring algorithm
 -- This is an unfold!
 -- unfoldr :: (b -> Maybe (a, b)) -> b -> [a] 
---             b :: AllGraphData = Graph and NodeMap
+--             b :: NodeMap
 --             a :: AssocVarColor
-colorGraph :: [(AsmVOp, AsmVOp)] -> [AsmVOp]  -> [(AsmVOp, Color)]
-colorGraph edges vars  = 
+colorGraph :: [(AsmVOp, AsmVOp)] -> [AsmVOp] -> [(AsmVOp, Color)] -> [(AsmVOp, Color)]
+colorGraph edges vars regColPairs
+  = 
   let 
     -- Create the Graph structure
     graph = G.edges edges
     -- Create the additional info for the graph nodes
-    nodeDatas = initNodes regs0vars regs4vars vars
+    nodeDatas = initNodes vars regColPairs
     -- Create the nodeMap to access the nodeData by the graph nodes
     nodeMap = Map.fromList $ zip (ndId <$> nodeDatas) nodeDatas
-    -- Packup all graph data in one value to use in unfoldr 
-    graphData = AllGraphData graph nodeMap  
+    -- Registers already have colors
+    -- Update the stop marks for the neighbours of the registers
+    newNodeMap = setRegStops graph regColPairs nodeMap 
     -- Run the dsatur algo 
-    assocs = unfoldr unfoldStep graphData 
+    assocs = unfoldr (unfoldStep graph) newNodeMap 
   in  -- Return the result as a list (AsmVOP, Int) 
     unAssocVarColor <$> assocs 
 
--- | Inititialize the node datastructure
-initNodes :: [Reg] -> [Reg] -> [AsmVOp] -> [NodeData]
-initNodes r0vars r4vars vars = {-initRegNodes <>-} initVarNodes
-  where 
-    -- | Helper function to initialize the node data 
-  initNode :: (AsmVOp, Maybe Color) -> NodeData 
-  initNode (loc, mbColor ) = NodeData { ndId = loc, ndColor = mbColor, ndMarks = []}
---   -- | initialize the register nodes, Registers have predefined colors
---   initRegNodes :: [NodeData]
---  initRegNodes = initNode <$>  (zip regs (Just <$> [(Color (-length r0vars))..]))
---    where regs = VReg <$> r0vars <> r4vars
-  -- | initialize the variable nodes from the list of variables. Variables have no colors
-  initVarNodes :: [NodeData]
-  initVarNodes = initNode <$> (zip vars (repeat Nothing))
-
--- | Color one single node of the graph
-unfoldStep :: AllGraphData -> Maybe (AssocVarColor, AllGraphData)
-unfoldStep (AllGraphData graph nodeMap) = 
+-- | Color one single node of the graph.
+--    The graph is constant over the whole coloring processing
+--    The NodeMap with the node data changes in every unfold step
+unfoldStep :: Graph -> NodeMap -> Maybe (AssocVarColor, NodeMap)
+unfoldStep graph nodeMap = 
   let 
     -- get all uncolored node keys
     keysUncolored = [ndId node | node <- Map.elems nodeMap, isNothing (ndColor node) ]
     -- | Function to calculate the saturation for a single node
+    --     The saturation is the sum of stop colors of all neighbours
+    --     We look for the node with the least number of possibile colors 
     saturation :: AsmVOp -> (Int, AsmVOp) 
     saturation aNode = 
       let 
-        -- Get the numbers of colored neighbours nodes 
+        -- Get the sum of colored neighbours nodes 
         neighbrsData = neighboursData graph nodeMap aNode
-        sat = foldr (+) 0 $ (length . ndMarks) <$> neighbrsData
+        sat = foldr (+) 0 $ (length . ndStops) <$> neighbrsData
       in 
         (sat,aNode)
     -- Calculate the saturation [(Int, AsmVOp)]) for all uncolored nodes
     satVals = saturation <$> keysUncolored
-    nodeMaxSat = snd $ maximumBy (comparing fst) (reverse satVals)   -- TODO remove reverse
+    nodeMaxSat = snd $ maximumBy (comparing fst) ({- reverse-} satVals)   -- TODO remove reverse
   in 
     if null keysUncolored
         then Nothing 
         else unfoldNode graph nodeMap nodeMaxSat
 
-unfoldNode :: Graph -> NodeMap -> AsmVOp -> Maybe (AssocVarColor, AllGraphData)                
+unfoldNode :: Graph -> NodeMap -> AsmVOp -> Maybe (AssocVarColor, NodeMap)                
 unfoldNode graph nodeMap nodeKey = 
   let 
     neighbrsData = neighboursData graph nodeMap nodeKey
-    newColor = calcNewColor graph nodeMap nodeKey
+    newColor = calcNewColor nodeMap nodeKey
     assocVarColor = AssocVarColor nodeKey newColor 
-    newMap1 = updateMarks newColor neighbrsData nodeMap 
+    newMap1 = updateStops newColor neighbrsData nodeMap 
     newMap2 = updateColor newColor nodeKey newMap1 
-    allGraphData = AllGraphData graph newMap2
   in 
-    Just (assocVarColor, allGraphData)  
+    Just (assocVarColor, newMap2)  
 
 -- | NodeDatas for all the neighbours of a Node
 neighboursData :: Graph -> NodeMap -> AsmVOp -> [NodeData]
 neighboursData graph nodeMap aNode = 
   let 
-    neighbrsKeys = Set.toList $ G.neighbours aNode graph 
+    neighbrsKeys = (Set.toList $ G.neighbours aNode graph)  
     flippedLookup = flip Map.lookup
   in
     mapMaybe (flippedLookup nodeMap) neighbrsKeys
 
 -- | Calculate the color for a node: take the lowest color
 --     that is different from all the colors of the neighbours
-calcNewColor :: Graph -> NodeMap -> AsmVOp -> Color 
-calcNewColor graph nodeMap aNodeKey = 
+calcNewColor :: NodeMap -> AsmVOp -> Color 
+calcNewColor nodeMap aNodeKey = 
   let
-    neighbrsData = neighboursData graph nodeMap aNodeKey
-    neighbrsColors = Set.fromList $ concat (ndMarks <$> neighbrsData)
+    nodeData = (Map.!) nodeMap aNodeKey 
+    neighbrsColors =  Set.fromList $ ndStops nodeData
     unusedColors = Set.difference 
       (Set.fromDistinctAscList $ Color <$> [0..(Map.size nodeMap)]) 
       neighbrsColors
@@ -265,14 +287,39 @@ updateColor col nodeKey nodeMap =
   in 
     Map.adjust updColor nodeKey nodeMap
 
--- | Add the color ouf our node to the marks of its neighbours
-updateMarks :: Color -> [NodeData] -> NodeMap -> NodeMap
-updateMarks col nodes nodeMap = 
+-- | Add the color of our node to the stops of its neighbours
+updateStops :: Color -> [NodeData] -> NodeMap -> NodeMap
+updateStops col neigbourNodes nodeMap = 
   let 
-    updMarks :: NodeData -> NodeData 
-    updMarks nd = nd { ndMarks = col : ndMarks nd }
+    updStops :: NodeData -> NodeData 
+    updStops nd = nd { ndStops = col : ndStops nd }
     updateNodeData :: NodeData -> NodeMap -> NodeMap 
-    updateNodeData nd ndMap = Map.adjust updMarks (ndId nd) ndMap
+    updateNodeData nd ndMap = Map.adjust updStops (ndId nd) ndMap
   in
-    foldr updateNodeData nodeMap nodes
+    foldr updateNodeData nodeMap neigbourNodes
+
+setRegStops :: Graph -> [(AsmVOp, Color)] -> NodeMap -> NodeMap
+setRegStops graph regcols nodeMap = foldr (setRegStop graph) nodeMap regcols
+
+setRegStop :: Graph -> (AsmVOp, Color) -> NodeMap -> NodeMap 
+setRegStop graph (aNodeKey, color) nodeMap = 
+  let 
+    neighbrsData = neighboursData graph nodeMap aNodeKey
+    -- aNode = fromJust $ Map.lookup aNodeKey nodeMap
+  in  
+    updateStops color neighbrsData nodeMap
+
+-- | Registers to use for variable assignment in phase register allocation
+regs4vars :: [Reg]
+regs4vars = [Rcx, Rdx, Rsi, Rdi, R8, R9, R10, Rbx, R12, R13, R14 ] 
+
+-- | Register to stop at a 'call' instruction 
+calleRSavedRegs4Vars :: [AsmVOp]
+calleRSavedRegs4Vars = VReg <$> (regs4vars `intersect` calleRSavedRegs)
+
+-- | Just the registers for variable operands 
+reg4varsOpnds :: [AsmVOp]
+reg4varsOpnds =  VReg <$> regs4vars
+
+
 

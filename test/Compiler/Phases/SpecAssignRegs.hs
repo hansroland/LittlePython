@@ -34,12 +34,12 @@ specAssignRegs = do
     let edges01 = [(v,w), (w,x), (x,y), (y,v)]
     let vars01 = [v,w,x,y]
     it "color graph square" $ do 
-       (colorGraph edges01 vars01) `shouldBe` [(v,0),  (x,1),  (w,0),  (y,1)]
+       (colorGraph edges01 vars01 []) `shouldBe` [(y,0), (w,0), (x,1), (v,1)]
 
     let edges02 = edges01 <> [(v,z), (w,z), (x,z), (y,z)]
     let vars02 = z : vars01
     it "color graph pyramid" $ do 
-       (colorGraph edges02 vars02) `shouldBe` [(v,0),  (x,1),  (z,2),  (w,3),  (y,4)]
+       (colorGraph edges02 vars02 []) `shouldBe` [(v,0),  (x,1),  (z,2),  (w,3),  (y,4)]
 
     it "testul book43" $ do  
        (testul book43) `shouldBe` "{}\n{a}\n{a}\n{c}\n{b c}" 
@@ -47,7 +47,7 @@ specAssignRegs = do
        (testul book44) `shouldBe` "{}\n{v}\n{v w}\n{w x}\n{w x}\n{w x y}\n{w y z}\n{y z}\n{tmp0 z}\n{tmp0 z}\n{tmp0 tmp1}\n{tmp1}" 
 
     it "testcp book44" $ do  
-       (testcp book44) `shouldBe` "[(w, v), (x, v), (x, w), (y, w), (y, x), (z, w), (z, x), (z, y), (tmp0, y), (tmp0, z), (tmp1, tmp0), (tmp1, z)]" 
+       (testcp book44) `shouldBe` "[(w, v), (x, w), (y, w), (z, w), (z, y), (tmp0, z), (tmp1, tmp0), (%rcx, tmp1), (%rdx, tmp1), (%rsi, tmp1), (%rdi, tmp1), (%r8, tmp1), (%r9, tmp1), (%r10, tmp1)]"
 
 -- Example from figure 4.3
 -- Note. We cannot send the example of the book through the

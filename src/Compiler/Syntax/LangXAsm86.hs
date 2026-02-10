@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Compiler.Syntax.LangXAsm86 where 
 
 -- This module describes the used portion of the X86-64 assembler. 
@@ -19,14 +21,20 @@ data Reg = Rsp | Rbp | Rax | Rbx | Rcx | Rdx | Rsi | Rdi |
         R8 | R9 | R10 | R11 | R12 | R13 | R14 | R15
         deriving (Show, Eq, Ord)
 
+-- Offsets are displacements in bytes from a base register
+newtype Offset = Offset { unoffset :: Int }
+    deriving (Eq, Show, Num, Ord, Integral, Real, Enum)
+    -- for conversion use: `unoffset`, or type annotation `:: Offset`
+
 -- Operand type for X86Int
 data AsmIOp = IReg !Reg                       
-           | IMem !Int !Reg 
+           | IMem !Offset !Reg 
            | IImm !Int           
            deriving (Show, Eq)
 
 -- Operand type for X86Var
-data AsmVOp = VVar !String
+data AsmVOp = VReg !Reg
+           | VVar !String
            | VImm !Int
            deriving (Show, Eq, Ord)
 
@@ -62,7 +70,7 @@ type InstrVar = Instr AsmVOp
 type ProgAsmV = [InstrVar]   
 
 -- A programs for the ProgAsmInt language
-data ProgAsmI = ProgAsmI Int [InstrInt]         -- Int for frame size in bytes
+data ProgAsmI = ProgAsmI Offset [InstrInt]         -- Offset for frame size in bytes
 
 -- Instances
 instance PP Reg where 
@@ -70,10 +78,11 @@ instance PP Reg where
 
 instance PP AsmIOp where 
     pp (IReg r)   = pp r
-    pp (IMem n r) = concat [show n, "(", pp r,  ")"]
+    pp (IMem n r) = concat [show (unoffset n), "(", pp r,  ")"]
     pp (IImm n)   = '$' : show n
 
 instance PP AsmVOp where 
+    pp (VReg r)   = pp r
     pp (VVar str) = str
     pp (VImm n)   = '$' : show n 
 
@@ -107,9 +116,6 @@ instance PP AsmOpc1 where
 instance PP AsmOpc0 where 
     pp op = toLower <$> show op
 
--- instance PP AsmOpcCall where
---    pp (Callq str atoms) = "Call"
-
 instance PP top => PP (Instr top)  where
     pp (Instr2 op s d) = concat [leftm, pp op, "  ", pp s, ", ", pp d]
     pp (Instr1 op sd)  = concat [leftm, pp op, "  ",  pp sd]
@@ -142,9 +148,24 @@ isVVar :: AsmVOp -> Bool
 isVVar (VVar _) = True 
 isVVar _        = False 
 
+isVReg :: AsmVOp -> Bool 
+isVReg (VReg _ ) = True 
+isVReg _         = False
+
+-- | Check, whether aan opearnd is eiter a variable or a register 
+isVVarOrVReg :: AsmVOp -> Bool 
+isVVarOrVReg (VReg _ ) = True 
+isVVarOrVReg (VVar _ ) = True 
+isVVarOrVReg (VImm _ ) = False
+
 -- | CalleR saved registers
 calleRSavedRegs :: [Reg]
 calleRSavedRegs = [Rax, Rcx, Rdx, Rdi, Rsi, R8, R9, R10, R11]
+
+-- | Check, whether an operand is a memory address
+isIMem ::  AsmIOp -> Bool 
+isIMem (IMem _ _) = True 
+isIMem _          = False
 
 calleESavedRegs :: [Reg]
 calleESavedRegs = [Rsp, Rbp, Rbx, R12, R13, R14, R15] 

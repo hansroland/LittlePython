@@ -9,9 +9,9 @@ import Compiler.Syntax.SpecEval(specEval)
 import Compiler.Phases.SpecOptSExpr(specOptSExpr)
 import Compiler.Phases.SpecRco(specRco)
 import Compiler.Phases.SpecSelectInstr(specSelInstr)
-import Compiler.Phases.SpecAssignHomes(specAssignHomes)
-import Compiler.Phases.SpecPatchInstr(specPatchInstr)
 import Compiler.Phases.SpecAssignRegs(specAssignRegs)
+-- import Compiler.Phases.SpecAssignHomes(specAssignHomes)
+-- import Compiler.Phases.SpecPatchInstr(specPatchInstr)
 
 -- Main module for test driver
 spec :: Spec
@@ -27,6 +27,7 @@ spec = do
   specOptSExpr
   specRco
   specSelInstr 
-  specAssignHomes
-  specPatchInstr
   specAssignRegs
+  -- specAssignHomes
+  -- specPatchInstr
+

@@ -11,8 +11,6 @@ module Compiler.Phases (
     , rOps
     , colorGraph
     , assignHomes
-    , regs0vars
-    , regs4vars
     , patchInstr
     , proEpilog
     )

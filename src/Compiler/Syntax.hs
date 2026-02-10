@@ -28,10 +28,15 @@ module Compiler.Syntax (
    , InstrVar
    , ProgAsmV
    , ProgAsmI(..)
+   , Offset(..)
+   , isIMem
    , isVImm
    , isVVar
+   , isVReg
+   , isVVarOrVReg
    , argumentPassingRegs
    , calleRSavedRegs 
+   , calleESavedRegs 
    ) where
 
 import Compiler.Syntax.LangBase 
