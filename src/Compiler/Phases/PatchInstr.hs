@@ -16,11 +16,14 @@ patchInstrInstr (Instr2 opc (IMem os rs) (IMem od dr)) =
                         Instr2 opc (IReg Rax) (IMem od dr)]
 -- Avoid immediate numbers bigger the  2^31 or smaller than -(2^31) in one instruction
 patchInstrInstr (Instr2 opc (IImm n) (IMem od dr)) =
-                  if  (n < (-twoPower31)) ||  (n > twoPower31)
-                      then  [Instr2 Movq (IImm n) (IReg Rax),
-                            Instr2 opc (IMem od dr) (IReg Rax)]
-                      else [Instr2 opc (IImm n) (IMem od dr)]
+    if  (n < (-twoPower31)) ||  (n > twoPower31)
+        then  [Instr2 Movq (IImm n) (IReg Rax),
+               Instr2 opc (IMem od dr) (IReg Rax)]
+        else [Instr2 opc (IImm n) (IMem od dr)]
                 where twoPower31 = (2:: Int) ^ (31:: Int) 
+    -- Remove trivial moves with equal source and destination
+patchInstrInstr instr@(Instr2 Movq src dst) = 
+    if (src == dst) then []  else [instr]
 -- Process parameters for Call Instruction 
 patchInstrInstr (InstrCall fn mbv args) = 
       concat [parmInstrs args, callInstr, assignInstr mbv] -- TODO  This is slow !! use the Shows trick. 

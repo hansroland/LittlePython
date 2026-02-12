@@ -1,0 +1,20 @@
+# A test examples with lot of variables
+v00 = 0
+v01 = 1
+v02 = 2
+v03 = 3
+v04 = 4 
+v05 = 5
+v06 = 6 
+v07 = 7
+v08 = 8
+v09 = 9
+v10 = 10
+v11 = 11
+s0 = v00 + v11
+s1 = v01 + v10 
+s2 = v02 + v09 
+s3 = v03 + v08 
+s4 = v04 + v07 
+s5 = v05 + v06
+print (((s0 + s5) + (s1 + s4)) + (s2 + s3 ))

@@ -25,11 +25,6 @@ evalStmt e = do
     output <- capture_ $ evalSProg [e]
     pure output
 
-
--- evalStmtWith :: SStmt -> IO String               -- without get_int
--- evalStmtWith stmt = do
---     runWithInput (evalSProg (SProg [stmt])) (exampleDir </> "empty")
-
 specEval :: Spec
 specEval = do
   describe "Tests for module LangInt.Eval" $ do
@@ -69,8 +64,15 @@ specEval = do
     it "compileAndRun prog05" $ do
         compileAndRun "prog05" "input01.txt" `shouldReturn` "110\n"
 
+    it "evalProgWith prog07" $ do
+        evalProgWith "prog07" "empty" `shouldReturn` "66\n"
+    it "compileAndRun prog07" $ do
+        compileAndRun "prog07" "empty" `shouldReturn` "66\n"
+
+    it "evalProgWith book4_1" $ do
+        evalProgWith "book4_1" "empty" `shouldReturn` "42\n"
     it "compileAndRun book4_1" $ do
-        compileAndRun "book4_1" "input01.txt" `shouldReturn` "42\n"
+        compileAndRun "book4_1" "empty" `shouldReturn` "42\n"
 
     it "compileAndRun book4_2" $ do
         compileAndRun "book4_2" "input01.txt" `shouldReturn` "152\n"

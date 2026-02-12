@@ -26,6 +26,9 @@ newtype Offset = Offset { unoffset :: Int }
     deriving (Eq, Show, Num, Ord, Integral, Real, Enum)
     -- for conversion use: `unoffset`, or type annotation `:: Offset`
 
+instance PP Offset where 
+    pp (Offset n) = show n
+
 -- Operand type for X86Int
 data AsmIOp = IReg !Reg                       
            | IMem !Offset !Reg 
@@ -94,6 +97,10 @@ instance PP [(AsmVOp, AsmIOp)] where
 
 instance PP [AsmVOp] where
     pp oprs = intercalate " " $ pp <$> oprs
+
+instance PP [AsmIOp] where
+    pp oprs = intercalate " " $ pp <$> oprs
+
  
 instance PP (Set AsmVOp) where 
     pp set = concat ["{", intercalate " " (pp <$> Set.elems set), "}"]
@@ -162,10 +169,14 @@ isVVarOrVReg (VImm _ ) = False
 calleRSavedRegs :: [Reg]
 calleRSavedRegs = [Rax, Rcx, Rdx, Rdi, Rsi, R8, R9, R10, R11]
 
--- | Check, whether an operand is a memory address
+-- | Check, whether an address operand is a memory address
 isIMem ::  AsmIOp -> Bool 
 isIMem (IMem _ _) = True 
 isIMem _          = False
+
+isIReg ::  AsmIOp -> Bool 
+isIReg (IReg _) = True 
+isIReg _        = False
 
 calleESavedRegs :: [Reg]
 calleESavedRegs = [Rsp, Rbp, Rbx, R12, R13, R14, R15] 

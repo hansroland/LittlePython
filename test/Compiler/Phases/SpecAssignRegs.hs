@@ -34,12 +34,12 @@ specAssignRegs = do
     let edges01 = [(v,w), (w,x), (x,y), (y,v)]
     let vars01 = [v,w,x,y]
     it "color graph square" $ do 
-       (colorGraph edges01 vars01 []) `shouldBe` [(y,0), (w,0), (x,1), (v,1)]
+       (colorGraph edges01 vars01 []) `shouldBe` [(y,0), (x,1), (w,0), (v,1)]
 
     let edges02 = edges01 <> [(v,z), (w,z), (x,z), (y,z)]
     let vars02 = z : vars01
     it "color graph pyramid" $ do 
-       (colorGraph edges02 vars02 []) `shouldBe` [(v,0),  (x,1),  (z,2),  (w,3),  (y,4)]
+       (colorGraph edges02 vars02 []) `shouldBe` [(z,0),  (y,1),  (x,2),  (w,1),  (v,2)]
 
     it "testul book43" $ do  
        (testul book43) `shouldBe` "{}\n{a}\n{a}\n{c}\n{b c}" 

@@ -30,6 +30,7 @@ module Compiler.Syntax (
    , ProgAsmI(..)
    , Offset(..)
    , isIMem
+   , isIReg
    , isVImm
    , isVVar
    , isVReg

@@ -26,4 +26,4 @@ testah path = do
    sprog <- readAndParseSrc (testSettings path)
    let vinstrs = selectInstr $ rco sprog 
    let (regmap, _usedCalleeRegs) = assignRegisters vinstrs
-   pure $ pp $ assignHomes regmap vinstrs 
+   pure $ pp $ assignHomes 0 regmap vinstrs 

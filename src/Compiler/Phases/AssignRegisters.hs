@@ -16,8 +16,9 @@ import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 
 import           Data.Maybe (isNothing, mapMaybe)
-import           Data.List (nub, maximumBy, unfoldr, intercalate, intersect )
+import           Data.List (nub, maximumBy, unfoldr, intercalate, intersect)
 import           Data.Ord (comparing)
+
 
 -- Variables for the coloring algo 
 
@@ -64,7 +65,7 @@ instance PP [(AsmVOp, Color)] where
    pp []       = ""
 
 
--- Asociation datatypes: We use them to avoid nested tuples 
+-- Asociation datatype: We use it to avoid nested tuples 
 -- in the unfoldr function
 
 -- Association (AsmVOp -> Color)
@@ -81,9 +82,9 @@ instance PP AssocVarColor where
 
 -- | Calculate the variables to be store in registers
 --    and the usedCallee Registers
--- For programs with less than 3 variables graph is too small to be 
--- useful for the algo. But programs with less than 3 variables don't nne
--- and optimization !
+-- A programs with less than 3 variables in its graph is too small to be 
+-- useful for the algo. But programs with less than 3 variables don't need
+-- any optimization !
 assignRegisters :: [InstrVar] ->  (Map AsmVOp AsmIOp, [AsmIOp])
 assignRegisters vinstrs = 
   let 
@@ -107,7 +108,7 @@ assignRegisters vinstrs =
     --   replace by registers
     colorResult = colorGraph edges vars regColPairs
     varmap = Map.fromList $ concat $ color2Reg colRegMap <$> colorResult
-    usedCalleeRegs = (IReg <$> calleESavedRegs) `intersect` (filter isIMem (Map.elems varmap))
+    usedCalleeRegs = nub $ (IReg <$> calleESavedRegs) `intersect` (filter isIReg (Map.elems varmap))
   in 
     (varmap, usedCalleeRegs)
 
@@ -127,7 +128,7 @@ color2Reg colRegMap (vop, col) =
 -- A variable is live at a program point if its current value 
 -- is used at some later point in the program.
 uncoverLive :: [InstrVar] -> [(InstrVar, Set AsmVOp)] 
-uncoverLive insts = zip insts $ reverse {-$ init -} $ scanl step Set.empty $ reverse insts 
+uncoverLive insts = zip insts $ reverse $ scanl step Set.empty $ reverse insts 
   where
     step :: Set AsmVOp -> InstrVar -> Set AsmVOp
     step lafter inst = 
@@ -224,22 +225,22 @@ colorGraph edges vars regColPairs
 unfoldStep :: Graph -> NodeMap -> Maybe (AssocVarColor, NodeMap)
 unfoldStep graph nodeMap = 
   let 
-    -- get all uncolored node keys
-    keysUncolored = [ndId node | node <- Map.elems nodeMap, isNothing (ndColor node) ]
     -- | Function to calculate the saturation for a single node
-    --     The saturation is the sum of stop colors of all neighbours
+    --     The saturation of a node is the size of the set of colors, 
+    --     that are no longer available to be used as colors for this nodes.
     --     We look for the node with the least number of possibile colors 
     saturation :: AsmVOp -> (Int, AsmVOp) 
     saturation aNode = 
       let 
-        -- Get the sum of colored neighbours nodes 
-        neighbrsData = neighboursData graph nodeMap aNode
-        sat = foldr (+) 0 $ (length . ndStops) <$> neighbrsData
+        -- Get the number of different colors from the neighbours
+        sat = length $ neighboursColors graph nodeMap aNode
       in 
         (sat,aNode)
+    -- get all the yet uncolored node keys
+    keysUncolored = [ndId node | node <- Map.elems nodeMap, isNothing (ndColor node) ]
     -- Calculate the saturation [(Int, AsmVOp)]) for all uncolored nodes
     satVals = saturation <$> keysUncolored
-    nodeMaxSat = snd $ maximumBy (comparing fst) ({- reverse-} satVals)   -- TODO remove reverse
+    nodeMaxSat = snd $ maximumBy (comparing fst) satVals
   in 
     if null keysUncolored
         then Nothing 
@@ -255,6 +256,15 @@ unfoldNode graph nodeMap nodeKey =
     newMap2 = updateColor newColor nodeKey newMap1 
   in 
     Just (assocVarColor, newMap2)  
+
+-- | Neighbours Colors - get all the colors from the neighbours
+neighboursColors :: Graph -> NodeMap -> AsmVOp -> [Color]
+neighboursColors graph nodeMap nNodeKey = 
+  let 
+    neighboursKeys  = (Set.toList $ G.neighbours nNodeKey graph)
+    neighboursNodes =  ((Map.!) nodeMap) <$> neighboursKeys
+  in  
+    nub $ mapMaybe ndColor neighboursNodes
 
 -- | NodeDatas for all the neighbours of a Node
 neighboursData :: Graph -> NodeMap -> AsmVOp -> [NodeData]
@@ -320,6 +330,3 @@ calleRSavedRegs4Vars = VReg <$> (regs4vars `intersect` calleRSavedRegs)
 -- | Just the registers for variable operands 
 reg4varsOpnds :: [AsmVOp]
 reg4varsOpnds =  VReg <$> regs4vars
-
-
-

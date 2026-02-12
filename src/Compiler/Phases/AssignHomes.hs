@@ -15,10 +15,13 @@ type AssignMonad a = State (Map AsmVOp AsmIOp, Offset) a
 --     vrmap     : Map to replace variables by registers
 --     ProgAsmV  : Assembler program with variables
 --     ProgAsmI  : Assembler program with memory addresses
-assignHomes :: Map AsmVOp AsmIOp -> ProgAsmV -> ProgAsmI
-assignHomes vrmap vstmts =
+assignHomes :: Int -> Map AsmVOp AsmIOp -> ProgAsmV -> ProgAsmI
+assignHomes nCalleeSavRegs vrmap vstmts =
   let 
-    (astmts, (varmap, maxOffset)) = runState (sequence (asHInstr <$> vstmts)) (vrmap, Offset 0)    
+    -- Calculate size of usedCalleeSave area. Start home addresses for spill variables after.
+    szRegSave = 8 * nCalleeSavRegs
+    (astmts, (varmap, maxOffset)) = runState 
+        (sequence (asHInstr <$> vstmts)) (vrmap, Offset (negate szRegSave))    
  
     -- Assign Homes for Instructions
     -- Translate instructions from Variables to Addresses / Registers
@@ -48,4 +51,6 @@ assignHomes vrmap vstmts =
                 _ <- put (newDict, newOffset)
                 return newEntry
             Just op -> return op
-  in ProgAsmI maxOffset  astmts 
+  in 
+    -- the offset is negative, the size must be positive !!
+    ProgAsmI (abs maxOffset)  astmts 

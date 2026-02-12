@@ -69,11 +69,12 @@ compile settings ast = do
   let (varRegMap, usedCalleeSaveRegs) = assignRegisters progInstrV
   when settings.printAr $ do 
     printPhaseRslt "AssignRegisters" $ pp $ Map.assocs varRegMap 
-
---     putStrLn $ "Callee Saved Registers " <> concat (pp <$> usedCalleeSaveRegs)  --TODO add Blanks
+    putStrLn $ "Used Callee Saved Registers: " <> pp usedCalleeSaveRegs 
 
   -- Assign Homes
-  let progAssignHomes = assignHomes varRegMap progInstrV
+  --   Number of used callee save registers
+  let nCalleeSavRegs = length usedCalleeSaveRegs 
+  let progAssignHomes = assignHomes nCalleeSavRegs varRegMap progInstrV
   when settings.printAh $ printPhaseRslt "Assign Homes" $ pp progAssignHomes
 
   -- Patch Instructions
@@ -83,8 +84,6 @@ compile settings ast = do
   -- Add Prolog and Epilog
   let asm = pp $ proEpilog progInstrI usedCalleeSaveRegs
   when settings.printEpilog $ printPhaseRslt "Final Programme" $ asm
-
-  -- putStrLn $ ("usedCalleSaveRegs: " <> concat ( pp <$> usedCalleeSaveRegs))
 
   return asm
 
